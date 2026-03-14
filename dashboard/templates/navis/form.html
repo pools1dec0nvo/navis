@@ -1,0 +1,47 @@
+{% extends "home/base.html" %}
+{% load leaflet_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+{% leaflet_css %}
+<style>
+  .navis-form { max-width: 600px; margin: 32px auto; padding: 0 16px; font-family: var(--ff-body); }
+  .navis-form h1 { font-size: 20px; margin-bottom: 20px; }
+  .navis-form label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .navis-form input, .navis-form select {
+    width: 100%; padding: 7px 10px; border: 1px solid var(--c-border);
+    border-radius: 6px; font-size: 14px; margin-bottom: 14px; box-sizing: border-box;
+  }
+  .navis-form .actions { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+  .navis-form .btn { padding: 8px 18px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; }
+  .navis-form .btn-primary { background: var(--c-accent); color: #fff; }
+  .navis-form .btn-danger  { background: #dc2626; color: #fff; }
+  .navis-form .btn-back    { color: var(--c-text-muted); text-decoration: none; font-size: 13px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="navis-form">
+  <h1>{{ title }}</h1>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.errors %}<p style="color:#dc2626;font-size:12px;">{{ field.errors|join:", " }}</p>{% endif %}
+    {% endfor %}
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Save</button>
+      <a href="{% url 'navis:index' %}" class="btn-back">← back to map</a>
+      {% if delete_url %}
+      <a href="{% url delete_url delete_pk %}" class="btn btn-danger" style="margin-left:auto">Delete</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% leaflet_js %}
+{% endblock %}

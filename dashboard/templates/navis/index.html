@@ -1,0 +1,1980 @@
+{% extends "home/base.html" %}
+{% load leaflet_tags %}
+
+{% block title %}Navis — Map{% endblock %}
+
+{% block extra_css %}
+{% leaflet_css %}
+<style>
+  /* ── Navis navbar overrides ───────────────────────────── */
+  .orbis-nav__navis-title {
+    font-family: var(--ff-body);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--c-text);
+    letter-spacing: .01em;
+  }
+  .orbis-nav__navis-title em {
+    font-style: italic;
+    color: var(--c-text-muted);
+    font-weight: 400;
+  }
+  .orbis-nav__brand--exit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--c-text-muted);
+    font-family: var(--ff-body);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background .15s, color .15s;
+  }
+  .orbis-nav__brand--exit:hover {
+    background: var(--c-bg-alt);
+    color: var(--c-text);
+  }
+  .orbis-nav__brand--exit .orbis-nav__brand-label {
+    display: inline;
+  }
+  /* ── Mobile: hide navis entirely, show placeholder ─────── */
+  .navis-mobile-block { display: none; }
+  @media (max-width: 767px) {
+    .navis-wrap { display: none !important; }
+    .navis-mobile-block { display: flex; }
+  }
+
+  body:not(.has-hero) main { padding-top: 0 !important; margin-top: 0 !important; }
+  .navis-wrap {
+    display: flex; position: fixed;
+    top: 52px; left: 0; right: 0; bottom: 0; z-index: 0;
+  }
+  #navis-map { flex: 1; height: 100%; }
+
+  /* ── Sidebar ─────────────────────────────────────────── */
+  .nb-sidebar {
+    width: 300px; min-width: 200px; max-width: 700px;
+    flex-shrink: 0; display: flex; flex-direction: column;
+    border-left: 1px solid var(--c-border); background: var(--c-bg-card);
+    font-family: var(--ff-body); font-size: 13px; overflow: hidden; z-index: 1;
+    position: relative;
+  }
+  /* Resize handle */
+  .nb-resize-handle {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+    cursor: col-resize; z-index: 10;
+    background: transparent;
+    transition: background .15s;
+  }
+  .nb-resize-handle:hover,
+  .nb-resize-handle.dragging { background: var(--c-accent, #2563eb); opacity: .35; }
+
+  .nb-list { flex: 1; overflow-y: auto; padding: 14px; min-height: 0; }
+  .nb-section-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--c-text-muted); margin: 14px 0 6px; padding-bottom: 4px;
+    border-bottom: 1px solid var(--c-border);
+  }
+  .nb-section-label:first-child { margin-top: 0; }
+
+  /* ── Multi-column grid for gateways, nodes, tanks ────── */
+  .nb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 6px;
+    align-items: start;
+  }
+  .nb-grid .nb-gw-row   { margin-bottom: 0; }
+  .nb-grid .nb-node     { margin-bottom: 0; }
+
+  /* ── Gateways sidebar ────────────────────────────────── */
+  .nb-gw-row {
+    border-radius: 7px; margin-bottom: 6px;
+    border: 1px solid var(--c-border); overflow: hidden;
+  }
+  .nb-gw-main {
+    display: flex; align-items: center; gap: 8px; padding: 7px 8px;
+    cursor: pointer;
+  }
+  .nb-gw-main:hover { background: var(--c-bg-alt); }
+  .nb-gw-logo {
+    width: 28px; height: 28px; border-radius: 5px; flex-shrink: 0;
+    object-fit: cover; background: var(--c-bg-alt);
+  }
+  .nb-gw-logo-fallback {
+    width: 28px; height: 28px; border-radius: 5px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font: 700 10px/1 sans-serif; color: #fff;
+  }
+  .nb-gw-info { flex: 1; min-width: 0; }
+  .nb-gw-id   { font-weight: 700; font-size: 12px; display: block; }
+  .nb-gw-entity { font-size: 11px; color: var(--c-text-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nb-gw-cap  { font-size: 10px; color: var(--c-text-muted); display: block; }
+  .nb-gw-actions { display: flex; gap: 2px; flex-shrink: 0; }
+  .nb-edit-btn { flex-shrink: 0; background: none; border: none; cursor: pointer; font-size: 13px; color: var(--c-text-muted); padding: 2px 4px; border-radius: 4px; line-height: 1; }
+  .nb-edit-btn:hover { background: var(--c-bg-alt); color: var(--c-accent); }
+  /* gateway detail panel */
+  .nb-gw-detail {
+    display: none; padding: 8px 10px; background: var(--c-bg);
+    border-top: 1px solid var(--c-border); font-size: 11px;
+  }
+  .nb-gw-row.expanded .nb-gw-detail { display: block; }
+  .nb-gw-detail-row { display: flex; gap: 6px; margin-bottom: 4px; }
+  .nb-gw-detail-row dt { color: var(--c-text-muted); font-weight: 600; width: 90px; flex-shrink: 0; }
+  .nb-gw-detail-row dd { margin: 0; color: var(--c-text); }
+
+  /* ── Nodes ───────────────────────────────────────────── */
+  .nb-node { margin-bottom: 8px; }
+  .nb-node-header { display: flex; align-items: flex-start; gap: 5px; padding: 5px 7px; border-radius: 6px; }
+  .nb-node-header:hover { background: var(--c-bg-alt); }
+  .nb-node-header .dot { width: 9px; height: 9px; border-radius: 50%; background: #2563eb; margin-top: 3px; flex-shrink: 0; }
+  .nb-caret { font-size: 9px; color: var(--c-text-muted); margin-top: 3px; cursor: pointer; transition: transform .15s; flex-shrink: 0; }
+  .nb-node.open .nb-caret { transform: rotate(90deg); }
+  .nb-node-fields { flex: 1; cursor: pointer; min-width: 0; }
+  .nb-tank-fields { flex: 1; cursor: pointer; min-width: 0; }
+  .nb-field-id   { display: block; font-weight: 700; font-size: 12px; }
+  .nb-field-name { display: block; font-size: 11px; color: var(--c-text-muted); }
+  .nb-field-cap  { display: block; font-size: 11px; color: var(--c-text-muted); }
+  .nb-field-coord { display: block; font-size: 10px; color: var(--c-text-muted); font-family: monospace; }
+  .nb-field-badge { display: inline-block; margin-top: 2px; font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 1px 5px; border-radius: 3px; letter-spacing: .04em; }
+  .nb-badge-active      { background: #dcfce7; color: #15803d; }
+  .nb-badge-inactive    { background: #fee2e2; color: #b91c1c; }
+  .nb-badge-deployed    { background: #dbeafe; color: #1d4ed8; }
+  .nb-badge-problem     { background: #fef9c3; color: #854d0e; }
+  .nb-badge-unresponsive{ background: #f3f4f6; color: #374151; }
+  .nb-badge-maintenance { background: #fce7f3; color: #9d174d; }
+  .nb-tank-list { padding-left: 16px; margin-top: 2px; display: none; }
+  .nb-node.open .nb-tank-list { display: block; }
+  .nb-tank-row { display: flex; align-items: flex-start; gap: 5px; padding: 4px 7px; border-radius: 5px; }
+  .nb-tank-row:hover { background: var(--c-bg-alt); }
+  .nb-tank-row .dot { width: 7px; height: 7px; border-radius: 50%; background: #f97316; margin-top: 3px; flex-shrink: 0; }
+  .nb-add-tank-btn { display: block; margin: 3px 7px 0; font-size: 11px; color: var(--c-text-muted); cursor: pointer; background: none; border: none; text-align: left; padding: 2px 0; }
+  .nb-add-tank-btn:hover { color: var(--c-accent); }
+
+  /* ── Statistics overlay (bottom-right of map) ──────────── */
+  .nb-stats-overlay {
+    position: absolute; bottom: 24px; right: 10px; z-index: 900;
+    background: var(--c-bg-card, #fff); border: 1px solid rgba(0,0,0,.2);
+    border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.22);
+    font-family: var(--ff-body, sans-serif); font-size: 12px;
+    min-width: 230px; max-width: 300px;
+  }
+  .nb-stats-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 14px; cursor: pointer; user-select: none;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--c-text-muted);
+  }
+  .nb-stats-header:hover { background: var(--c-bg-alt); border-radius: 6px; }
+  .nb-stats-caret { font-size: 9px; transition: transform .15s; }
+  .nb-stats-overlay.open .nb-stats-caret { transform: rotate(90deg); }
+  .nb-stats-body { display: none; padding: 10px 14px 12px; }
+  .nb-stats-overlay.open .nb-stats-body { display: block; }
+  .nb-stat-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 3px 0; font-size: 12px; border-bottom: 1px solid var(--c-border);
+  }
+  .nb-stat-row:last-child { border-bottom: none; }
+  .nb-stat-label { color: var(--c-text-muted); font-size: 11px; }
+  .nb-stat-val { font-weight: 700; color: var(--c-text); font-size: 12px; }
+  .nb-stat-pct { font-weight: 700; color: var(--c-accent); margin-left: 4px; }
+  .nb-stats-input-row {
+    display: flex; align-items: center; gap: 8px; margin: 6px 0;
+  }
+  .nb-stats-input-row label { font-size: 11px; color: var(--c-text-muted); white-space: nowrap; min-width: 70px; }
+  .nb-stats-input-row select,
+  .nb-stats-input-row input {
+    flex: 1; padding: 4px 7px; border: 1px solid var(--c-border); border-radius: 5px;
+    font-size: 12px; background: var(--c-bg-card); color: var(--c-text); min-width: 0;
+  }
+  .nb-stat-sub { font-size: 10px; color: var(--c-text-muted); margin-top: 1px; }
+
+  /* ── Map overlay buttons (top-right) ─────────────────── */
+  .nb-map-controls {
+    position: absolute; top: 10px; right: 10px; z-index: 900;
+    display: flex; gap: 8px; flex-wrap: wrap; max-width: 340px; justify-content: flex-end;
+  }
+  .nb-map-btn {
+    padding: 7px 14px; border-radius: 6px; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 600; box-shadow: 0 2px 6px rgba(0,0,0,.22);
+  }
+  .nb-map-btn.gateway  { background: #16a34a; color: #fff; }
+  .nb-map-btn.node     { background: #2563eb; color: #fff; }
+  .nb-map-btn.entity   { background: #64748b; color: #fff; }
+  .nb-map-btn.active   { outline: 3px solid rgba(255,255,255,.7); }
+  .nb-map-btn.nb-btn-outline { background: #fff; color: #111; border: 1.5px solid #111; }
+  .nb-map-btn.nb-btn-outline:hover { background: #f1f5f9; }
+  .nb-map-btn.nb-btn-outline.active { background: #111; color: #fff; outline: none; }
+
+  /* crosshair when placing */
+  #navis-map.placing,
+  #navis-map.placing .leaflet-interactive { cursor: crosshair !important; }
+  #navis-map.dragging-mode { cursor: grab !important; }
+  #navis-map.dragging-mode .leaflet-marker-icon { cursor: grab !important; }
+
+  /* ── Inspect overlay ── */
+  #nb-inspect-overlay { transition: opacity .25s; }
+  #nb-inspect-content { box-sizing: border-box; }
+  #nb-inspect-content { animation: nb-inspect-fadein .22s ease both; }
+  @keyframes nb-inspect-fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .nb-inspect-diagram {
+    position: relative;
+    transform-box: fill-box;
+    transition: transform .28s cubic-bezier(.175,.885,.32,1.275);
+  }
+  .nb-inspect-node-capsule {
+    background: #dbeafe; border: 2.5px solid #2563eb; border-radius: 16px;
+    padding: 18px 24px; text-align: center; cursor: pointer;
+    min-width: 200px; box-shadow: 0 4px 20px rgba(37,99,235,.25);
+    position: absolute; z-index: 3; box-sizing: border-box;
+    transition: background .15s;
+  }
+  .nb-inspect-node-capsule:hover { background: #bfdbfe; }
+  .nb-inspect-tank-capsule {
+    background: #fff; border: 2.5px solid #e2e8f0; border-radius: 12px;
+    padding: 12px 16px; text-align: center; cursor: pointer;
+    min-width: 140px; box-shadow: 0 2px 10px rgba(0,0,0,.12);
+    transition: border-color .15s; position: absolute; z-index: 3; box-sizing: border-box;
+  }
+  .nb-inspect-tank-capsule:hover { border-color: #f97316; }
+  .nb-inspect-lbl { font-size: 10px; color: #64748b; margin-bottom: 2px; }
+  .nb-inspect-val { font-size: 13px; font-weight: 700; color: #1e293b; }
+  .nb-inspect-subval { font-size: 11px; color: #475569; margin-top: 2px; }
+  .nb-inspect-svg { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: visible; }
+
+  /* ── Layer toggle panel (bottom-left) ── */
+  .nb-layer-panel {
+    position: absolute; bottom: 24px; left: 10px; z-index: 900;
+    background: var(--c-bg-card, #fff); border: 1px solid rgba(0,0,0,.2);
+    border-radius: 6px; padding: 8px 12px; box-shadow: 0 2px 6px rgba(0,0,0,.22);
+    font-family: var(--ff-body, sans-serif); font-size: 12px; min-width: 150px;
+  }
+  .nb-layer-panel label {
+    display: flex; align-items: center; gap: 6px; margin: 4px 0; cursor: pointer;
+    color: var(--c-text, #111); font-size: 12px; font-weight: 500; user-select: none;
+  }
+  .nb-layer-panel input[type=checkbox] { width: 13px; height: 13px; cursor: pointer; flex-shrink: 0; }
+  .nb-layer-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .nb-layer-sq  { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .nb-layer-sep { border: none; border-top: 1px solid var(--c-border, #e2e8f0); margin: 5px 0; }
+  .nb-layer-slider-row { display: flex; align-items: center; gap: 6px; margin: 5px 0; }
+  .nb-layer-slider-row span { font-size: 12px; font-weight: 500; color: var(--c-text, #111); white-space: nowrap; }
+  .nb-layer-slider-row input[type=range] { flex: 1; cursor: pointer; accent-color: var(--c-accent, #2563eb); }
+  .nb-layer-parish-row { display: flex; align-items: center; gap: 6px; margin: 5px 0; }
+  .nb-layer-parish-row span { font-size: 12px; font-weight: 500; color: var(--c-text, #111); white-space: nowrap; }
+  .nb-layer-parish-row select { flex: 1; font-size: 11px; border: 1px solid var(--c-border, #e2e8f0); border-radius: 4px; padding: 2px 4px; background: var(--c-bg-card, #fff); color: var(--c-text, #111); cursor: pointer; }
+
+  /* ── Node marker (circle with tank count) ───────────────────────────────── */
+  .nb-node-marker {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #2563eb; border: 2.5px solid #fff;
+    box-shadow: 0 1px 5px rgba(0,0,0,.5);
+    display: flex; align-items: center; justify-content: center;
+    font: 700 10px/1 sans-serif; color: #fff;
+    transition: width .15s, height .15s, margin .15s, font-size .15s;
+    cursor: pointer;
+  }
+  .nb-node-marker:hover {
+    width: 32px; height: 32px; margin: -5px; font-size: 13px;
+  }
+  .nb-node-marker-slim {
+    width: 16px; height: 16px;
+  }
+  .nb-node-marker-slim:hover {
+    width: 24px; height: 24px; margin: -4px;
+  }
+  /* ── Legacy dot (kept for ghost/tank if needed) ──────────────────────────── */
+  .nb-dot-marker {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.45);
+    transition: width .15s, height .15s, margin .15s;
+    cursor: pointer;
+  }
+  .nb-dot-marker:hover { width: 20px; height: 20px; margin: -5px; }
+
+  /* ── Modals ───────────────────────────────────────────── */
+  .nb-modal {
+    display: none; position: fixed; inset: 0; z-index: 1100;
+    background: rgba(0,0,0,.45); align-items: center; justify-content: center;
+  }
+  .nb-modal.open { display: flex; }
+  .nb-modal-box {
+    background: var(--c-bg-card); border-radius: 10px; padding: 22px 24px;
+    width: 400px; max-width: calc(100vw - 32px); font-family: var(--ff-body);
+    box-shadow: 0 8px 32px rgba(0,0,0,.28); max-height: calc(100vh - 60px); overflow-y: auto;
+  }
+  .nb-modal-box.wide { width: 520px; }
+  .nb-modal-box h3 { margin: 0 0 14px; font-size: 14px; font-weight: 700; }
+  .nb-modal-label { display: block; font-size: 11px; font-weight: 600; margin: 8px 0 3px; color: var(--c-text-muted); }
+  .nb-modal-input {
+    width: 100%; padding: 6px 9px; border: 1px solid var(--c-border); border-radius: 5px;
+    font-size: 13px; box-sizing: border-box; background: var(--c-bg-card); color: var(--c-text);
+  }
+  .nb-modal-input[type=color] { padding: 3px 6px; height: 34px; }
+  .nb-modal-input[type=number] { -moz-appearance: textfield; }
+  textarea.nb-modal-input { resize: vertical; min-height: 55px; }
+  .nb-modal-row { display: flex; gap: 10px; }
+  .nb-modal-row > * { flex: 1; }
+  .nb-modal-errors { color: #dc2626; font-size: 11px; margin-top: 6px; }
+  .nb-modal-actions { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
+
+  .nb-btn { padding: 6px 14px; border-radius: 5px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .nb-btn-primary { background: var(--c-accent); color: #fff; }
+  .nb-btn-danger  { background: #dc2626; color: #fff; }
+  .nb-btn-ghost   { background: transparent; color: var(--c-text-muted); border: 1px solid var(--c-border); }
+  .nb-coord-hint  { font-size: 11px; color: var(--c-text-muted); margin-top: 6px; }
+  .nb-coord-hint.has-coord { color: #16a34a; }
+  .nb-error { color: #dc2626; font-size: 11px; margin-top: 6px; }
+
+  /* ── Inline tank rows in node-add modal ── */
+  .nb-tank-inline-row {
+    display: flex; gap: 8px; align-items: flex-end; margin-top: 6px;
+  }
+  .nb-tank-inline-row > div { flex: 1; }
+  .nb-tank-inline-row .nb-remove-tank-row {
+    background: none; border: none; cursor: pointer; color: #dc2626;
+    font-size: 16px; padding: 4px 6px; flex: 0; align-self: flex-end; margin-bottom: 4px;
+  }
+  .nb-tank-inline-row .nb-remove-tank-row:hover { background: #fee2e2; border-radius: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Mobile placeholder (hidden on desktop via CSS) -->
+<div class="navis-mobile-block" style="flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:20px;padding:32px 24px;text-align:center;font-family:var(--ff-body);">
+  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="color:var(--c-text-muted);opacity:.5;">
+    <rect x="4" y="8" width="40" height="28" rx="4" stroke="currentColor" stroke-width="2.2"/>
+    <path d="M16 40h16M24 36v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M18 22l4 4 8-8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/>
+  </svg>
+  <div>
+    <p style="font-size:17px;font-weight:600;color:var(--c-text);margin:0 0 6px;">Tool not available on mobile</p>
+    <p style="font-size:14px;color:var(--c-text-muted);margin:0;">The dashboard requires a larger screen.<br>Please use a desktop or laptop.</p>
+  </div>
+  <a href="/" class="btn btn--ghost" style="margin-top:8px;">← Return to Home</a>
+</div>
+
+<div class="navis-wrap">
+  <div style="position:relative; flex:1; height:100%;">
+    <div id="navis-map"></div>
+
+    <!-- Inspect overlay (replaces map when a node is clicked in inspect mode) -->
+    <div id="nb-inspect-overlay" style="display:none;position:absolute;inset:0;z-index:950;background:#d1fae5;overflow:hidden;">
+      <button class="nb-map-btn nb-btn-outline" onclick="closeInspectView()" style="position:absolute;top:10px;right:10px;z-index:951;">← Back to map</button>
+      <div id="nb-inspect-content" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;"></div>
+    </div>
+
+    <!-- Map add-buttons (top-right) -->
+    <div class="nb-map-controls">
+      <button class="nb-map-btn gateway"  id="btn-add-gateway">+ Gateway</button>
+      <button class="nb-map-btn node"     id="btn-add-node">+ Node</button>
+      <button class="nb-map-btn entity"   id="btn-add-entity">+ Entity</button>
+      <button class="nb-map-btn nb-btn-outline" id="btn-drag-mode" onclick="startDragMode()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;flex-shrink:0"><path d="M18 11V6a2 2 0 00-4 0v1M14 10V4a2 2 0 00-4 0v6M10 10.5V6a2 2 0 00-4 0v8"/><path d="M18 8a2 2 0 012 2v7a5 5 0 01-5 5H9a5 5 0 01-5-5v-1a2 2 0 012-2"/></svg>Drag
+      </button>
+      <button class="nb-map-btn nb-btn-outline" id="btn-drag-done" style="display:none;" onclick="finishDragMode()">Done</button>
+      <button class="nb-map-btn nb-btn-outline" id="btn-inspect-mode" onclick="toggleInspectMode()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>Inspect
+      </button>
+    </div>
+
+    <!-- Layer toggle panel (bottom-left) -->
+    <div class="nb-layer-panel" id="nb-layer-panel">
+      <label><input type="checkbox" id="lyr-gateways" checked>
+        <span class="nb-layer-sq" style="background:#16a34a"></span>Gateways</label>
+      <label><input type="checkbox" id="lyr-nodes" checked>
+        <span class="nb-layer-dot" style="background:#2563eb"></span>Nodes</label>
+      <label><input type="checkbox" id="lyr-tanks">
+        <span class="nb-layer-dot" style="background:#f97316"></span>Tanks</label>
+      <label><input type="checkbox" id="lyr-show-numbers" checked>
+        <span class="nb-layer-sq" style="background:#2563eb;border:1px solid #1d4ed8"></span>Show tank count</label>
+      <label><input type="checkbox" id="lyr-radius">
+        <span class="nb-layer-sq" style="background:rgba(22,163,74,.3);border:1px solid #16a34a"></span>GW radius</label>
+      <hr class="nb-layer-sep">
+      <label><input type="checkbox" id="lyr-nearest-edges">
+        <span class="nb-layer-sq" style="background:rgba(37,99,235,.25);border:1px solid #2563eb"></span>Nearest GW edge</label>
+      <label><input type="checkbox" id="lyr-all-edges">
+        <span class="nb-layer-sq" style="background:rgba(37,99,235,.12);border:1px dashed #2563eb"></span>All GW edges</label>
+      <hr class="nb-layer-sep">
+      <div class="nb-layer-parish-row">
+        <span>Parish</span>
+        <select id="lyr-parish" onchange="applyParishFilter()">
+          <option value="">All</option>
+          {% for p in parishes %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+        </select>
+      </div>
+      <hr class="nb-layer-sep">
+      <div class="nb-layer-slider-row">
+        <span>Map</span>
+        <input type="range" id="map-opacity" min="0" max="100" value="100">
+        <span id="map-opacity-val">100%</span>
+      </div>
+    </div>
+
+    <!-- Statistics overlay (bottom-right of map) -->
+    <div class="nb-stats-overlay" id="nb-stats-overlay">
+      <div class="nb-stats-header" onclick="document.getElementById('nb-stats-overlay').classList.toggle('open')">
+        <span>Statistics</span>
+        <span class="nb-stats-caret">▶</span>
+      </div>
+      <div class="nb-stats-body">
+        <div class="nb-stat-row">
+          <span class="nb-stat-label">Nodes</span>
+          <span class="nb-stat-val" id="stat-node-count">—</span>
+        </div>
+        <div class="nb-stat-row">
+          <span class="nb-stat-label">Avg nodes / gateway</span>
+          <span class="nb-stat-val" id="stat-avg-nodes">—</span>
+        </div>
+        <div class="nb-stat-row">
+          <span class="nb-stat-label">Total capacity</span>
+          <span class="nb-stat-val" id="stat-total-cap">— kL</span>
+        </div>
+        <hr class="nb-layer-sep">
+        <div class="nb-stats-input-row">
+          <label for="stat-lpd">L / person / day</label>
+          <input type="number" id="stat-lpd" value="3.5" step="0.1" min="0.1" onchange="updateStats()" oninput="updateStats()">
+        </div>
+        <div class="nb-stats-input-row">
+          <label for="stat-target-pop">Target pop.</label>
+          <input type="number" id="stat-target-pop" value="575739" min="1" onchange="updateStats()" oninput="updateStats()">
+        </div>
+        <div class="nb-stats-input-row">
+          <label for="stat-uptime">Uptime</label>
+          <select id="stat-uptime" onchange="updateStats()">
+            <option value="12">12 h</option>
+            <option value="24">24 h</option>
+            <option value="36">36 h</option>
+            <option value="48" selected>48 h</option>
+            <option value="60">60 h</option>
+            <option value="72">72 h</option>
+          </select>
+        </div>
+        <hr class="nb-layer-sep">
+        <div class="nb-stat-row">
+          <span class="nb-stat-label">Required capacity</span>
+          <span class="nb-stat-val" id="stat-required-cap">— kL</span>
+        </div>
+        <div class="nb-stat-row">
+          <span class="nb-stat-label">Covered capacity</span>
+          <span class="nb-stat-val">
+            <span id="stat-covered-cap">—</span> kL
+            <span class="nb-stat-pct" id="stat-covered-pct"></span>
+          </span>
+        </div>
+        <div class="nb-stat-row">
+          <span class="nb-stat-label">
+            Covered population
+            <span class="nb-stat-sub" id="stat-pop-target-label">vs 575 739</span>
+          </span>
+          <span class="nb-stat-val">
+            <span id="stat-pop">—</span>
+            <span class="nb-stat-pct" id="stat-pop-pct"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="nb-sidebar" id="nb-sidebar">
+    <div class="nb-resize-handle" id="nb-resize-handle"></div>
+    <div class="nb-list" id="nb-node-list">
+      <!-- Gateways section -->
+      <div class="nb-section-label">Gateways</div>
+      <div class="nb-grid" id="nb-gw-grid">
+      {% for gw in gateways %}
+      <div class="nb-gw-row" id="sidebar-gateway-{{ gw.id }}">
+        <div class="nb-gw-main" onclick="toggleGwDetail({{ gw.id }})">
+          {% if gw.entity.logo %}
+          <img src="{{ gw.entity.logo.url }}" class="nb-gw-logo" alt="{{ gw.entity.short_name }}">
+          {% else %}
+          <div class="nb-gw-logo-fallback" style="background:{{ gw.entity.color }}">{{ gw.entity.short_name|slice:":2"|upper }}</div>
+          {% endif %}
+          <span class="nb-gw-info">
+            <span class="nb-gw-id">{{ gw.identifier }}</span>
+            <span class="nb-gw-entity">{{ gw.entity.full_name }}</span>
+            <span class="nb-gw-cap">
+              SF{{ gw.spreading_factor }}
+              <span class="nb-field-badge nb-badge-{{ gw.status }}">{{ gw.status }}</span>
+            </span>
+          </span>
+          <div class="nb-gw-actions">
+            <button class="nb-edit-btn" onclick="event.stopPropagation();toggleGwDetail({{ gw.id }})" title="Toggle details">👁</button>
+            <button class="nb-edit-btn" onclick="event.stopPropagation();openEditModal('gateway', {{ gw.id }})" title="Edit gateway">✏</button>
+          </div>
+        </div>
+        <div class="nb-gw-detail" id="gw-detail-{{ gw.id }}">
+          <div class="nb-gw-detail-row"><dt>Name</dt><dd>{{ gw.name }}</dd></div>
+          <div class="nb-gw-detail-row"><dt>Entity</dt><dd>{{ gw.entity.full_name }}</dd></div>
+          <div class="nb-gw-detail-row"><dt>Spreading factor</dt><dd>SF{{ gw.spreading_factor }}</dd></div>
+          <div class="nb-gw-detail-row"><dt>Radius</dt><dd>{{ gw.radius }} m</dd></div>
+          <div class="nb-gw-detail-row"><dt>Coordinates</dt><dd style="font-family:monospace">{{ gw.location.y|floatformat:5 }}, {{ gw.location.x|floatformat:5 }}</dd></div>
+        </div>
+      </div>
+      {% empty %}
+      <p id="nb-empty-gw-msg" style="color:var(--c-text-muted);font-size:12px">No gateways yet.</p>
+      {% endfor %}
+      </div><!-- /nb-gw-grid -->
+
+      <!-- Nodes section -->
+      <div class="nb-section-label">Nodes &amp; Tanks</div>
+      <div class="nb-grid" id="nb-nodes-grid">
+      {% for node in nodes %}
+      <div class="nb-node" data-node-id="{{ node.id }}" data-parish="{{ node.parish }}" id="sidebar-node-{{ node.id }}">
+        <div class="nb-node-header">
+          <span class="dot"></span>
+          <span class="nb-caret" onclick="toggleNode(this.closest('.nb-node-header'))">▶</span>
+          <span class="nb-node-fields" onclick="toggleNode(this.closest('.nb-node-header'))">
+            <span class="nb-field-id">{{ node.identifier }}</span>
+            <span class="nb-field-name">{{ node.name }}</span>
+            <span class="nb-field-badge nb-badge-{{ node.status }}">{{ node.status }}</span>
+            <span class="nb-field-coord">{{ node.location.y|floatformat:4 }}, {{ node.location.x|floatformat:4 }}</span>
+          </span>
+          <button class="nb-edit-btn" onclick="openEditModal('node', {{ node.id }})" title="Edit node">✏</button>
+        </div>
+        <div class="nb-tank-list" id="tank-list-{{ node.id }}">
+          {% for tank in node.tanks.all %}
+          <div class="nb-tank-row" id="sidebar-tank-{{ tank.id }}">
+            <span class="dot"></span>
+            <span class="nb-tank-fields" onclick="openEditModal('tank', {{ tank.id }})">
+              <span class="nb-field-id">{{ tank.alpha_id }}</span>
+              <span class="nb-field-cap">{{ tank.capacity }}</span>
+              <span class="nb-field-badge nb-badge-{{ tank.status }}">{{ tank.status }}</span>
+            </span>
+            <button class="nb-edit-btn" onclick="openEditModal('tank', {{ tank.id }})" title="Edit tank">✏</button>
+          </div>
+          {% empty %}
+          <div class="nb-empty-tanks" style="padding:3px 7px;color:var(--c-text-muted);font-size:11px">No tanks</div>
+          {% endfor %}
+          <button class="nb-add-tank-btn" onclick="openEditModal('tank', null, {{ node.id }})">+ add tank</button>
+        </div>
+      </div>
+      {% empty %}
+      <p id="nb-empty-msg" style="color:var(--c-text-muted);font-size:12px">No nodes yet. Click "+ Node" to start.</p>
+      {% endfor %}
+      </div><!-- /nb-nodes-grid -->
+    </div>
+  </aside>
+</div>
+
+<!-- ── Edit modal (node / tank / gateway) ──────────────────────────── -->
+<div class="nb-modal" id="nb-edit-modal">
+  <div class="nb-modal-box">
+    <h3 id="edit-modal-title">Edit</h3>
+    <form id="nb-edit-form" onsubmit="submitEditForm(event)">
+      {% csrf_token %}
+      <div id="edit-modal-fields"></div>
+      <div class="nb-modal-errors" id="nb-edit-errors"></div>
+      <div class="nb-modal-actions">
+        <button type="submit" class="nb-btn nb-btn-primary">Save</button>
+        <button type="button" class="nb-btn nb-btn-ghost" onclick="closeEditModal()">Cancel</button>
+        <button type="button" class="nb-btn nb-btn-danger" id="edit-btn-delete" style="display:none;margin-left:auto" onclick="deleteEditItem()">Delete</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Node add modal (with inline tanks) ──────────────────────────── -->
+<div class="nb-modal" id="nb-node-add-modal">
+  <div class="nb-modal-box wide">
+    <h3>New Node</h3>
+    <form id="nb-node-add-form" onsubmit="submitNodeAdd(event)">
+      {% csrf_token %}
+      <input type="hidden" id="na-lat" name="lat">
+      <input type="hidden" id="na-lng" name="lng">
+
+      <div class="nb-modal-row">
+        <div>
+          <label class="nb-modal-label">Identifier</label>
+          <input type="text" class="nb-modal-input" id="na-identifier" required placeholder="e.g. ND-01">
+        </div>
+        <div>
+          <label class="nb-modal-label">Name</label>
+          <input type="text" class="nb-modal-input" id="na-name" required placeholder="e.g. Reservoir North">
+        </div>
+      </div>
+      <div class="nb-modal-row">
+        <div>
+          <label class="nb-modal-label">Status</label>
+          <select class="nb-modal-input" id="na-status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="deployed">Deployed</option>
+            <option value="problem">Problem</option>
+            <option value="unresponsive">Unresponsive</option>
+            <option value="maintenance">Maintenance</option>
+          </select>
+        </div>
+        <div>
+          <label class="nb-modal-label">Parish</label>
+          <select class="nb-modal-input" id="na-parish">
+            <option value="">—</option>
+            {% for p in parishes %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <hr class="nb-layer-sep" style="margin:12px 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="nb-modal-label" style="margin:0;font-size:12px;font-weight:700;">Tanks</span>
+        <button type="button" class="nb-btn nb-btn-ghost" style="padding:3px 10px;font-size:11px;" onclick="addTankRow()">+ Add Tank</button>
+      </div>
+      <div id="na-tank-rows"></div>
+
+      <p class="nb-coord-hint" id="na-coord-hint" style="margin-top:10px">Click the map to set node location.</p>
+      <div class="nb-modal-errors" id="nb-node-add-errors"></div>
+      <div class="nb-modal-actions">
+        <button type="submit" class="nb-btn nb-btn-primary">Create</button>
+        <button type="button" class="nb-btn nb-btn-ghost" onclick="closeNodeAdd()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Entity modal ───────────────────────────────────────────── -->
+<div class="nb-modal" id="nb-entity-modal">
+  <div class="nb-modal-box">
+    <h3 id="entity-modal-title">New Entity</h3>
+    <form id="nb-entity-form" onsubmit="submitEntityForm(event)">
+      {% csrf_token %}
+      <label class="nb-modal-label">Slug</label>
+      <input type="text" class="nb-modal-input" name="slug" id="e-slug" required>
+      <label class="nb-modal-label">Short Name</label>
+      <input type="text" class="nb-modal-input" name="short_name" id="e-short_name" required>
+      <label class="nb-modal-label">Full Name</label>
+      <input type="text" class="nb-modal-input" name="full_name" id="e-full_name" required>
+      <label class="nb-modal-label">Color</label>
+      <input type="color" class="nb-modal-input" name="color" id="e-color" value="#64748b">
+      <label class="nb-modal-label">Description</label>
+      <textarea class="nb-modal-input" name="description" id="e-description"></textarea>
+      <div class="nb-modal-errors" id="nb-entity-errors"></div>
+      <div class="nb-modal-actions">
+        <button type="submit" class="nb-btn nb-btn-primary">Save</button>
+        <button type="button" class="nb-btn nb-btn-ghost" onclick="closeEntityModal()">Cancel</button>
+        <button type="button" class="nb-btn nb-btn-danger" id="entity-btn-delete" style="display:none;margin-left:auto" onclick="deleteEntity()">Delete</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Drag-reposition confirm modal ──────────────────────────────── -->
+<div class="nb-modal" id="nb-drag-confirm-modal">
+  <div class="nb-modal-box">
+    <h3>Changed position:</h3>
+    <ul id="drag-changed-list" style="margin:8px 0 16px;padding-left:18px;line-height:1.8;max-height:220px;overflow-y:auto;"></ul>
+    <div class="nb-modal-actions">
+      <button type="button" class="nb-btn nb-btn-primary" onclick="confirmDragChanges()">Confirm</button>
+      <button type="button" class="nb-btn nb-btn-ghost" onclick="cancelDragChanges()">Revert</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% leaflet_js %}
+<script>
+const GEOJSON           = {{ geojson|safe }};
+const CSRF              = '{{ csrf_token }}';
+const MAP_LAT           = {{ map_lat }};
+const MAP_LNG           = {{ map_lng }};
+const MAP_ZOOM          = {{ map_zoom }};
+const URL_NODE_CREATE   = '{% url "navis:node_create" %}';
+const URL_TANK_CREATE   = '{% url "navis:tank_create" %}';
+const URL_GW_CREATE     = '{% url "navis:gateway_create" %}';
+const URL_ENTITY_CREATE = '{% url "navis:entity_create" %}';
+const URL_NODE_CREATE_WITH_TANKS = '{% url "navis:node_create_with_tanks" %}';
+const URL_BATCH_REPOSITION = '{% url "navis:batch_reposition" %}';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let placingMode    = null;   // "node"|"gateway"
+let tempMarker     = null;
+let activeEntityId = null;
+
+// Edit modal state
+let editKind     = null;
+let editItemId   = null;
+let editNodeId   = null;   // for tank creation — preselect parent node
+let editLatLng   = null;   // for node/gateway creation via map click
+
+// Drag-to-reposition state
+let dragMode = false;
+const dragOriginalPositions = {};
+const dragMovedItems = {};
+const markerLabels = {};
+
+const markers       = {};
+const edges         = {};
+const radiusCircles = {};
+const nearestEdges  = {};
+const allEdgesMap   = {};
+
+// GeoJSON data lookup tables
+const nodeCoords     = {};
+const gwData         = {};
+const nodeParish     = {};
+const nodeTankCount  = {};
+
+// ── Drag-to-reposition ────────────────────────────────────────────────────────
+const dragEndHandlers = {};
+
+function startDragMode() {
+  if (placingMode) stopPlacing();
+  dragMode = true;
+  document.getElementById("btn-drag-mode").style.display = "none";
+  document.getElementById("btn-drag-done").style.display = "";
+  document.getElementById("btn-drag-done").classList.add("active");
+  document.getElementById("navis-map").classList.add("dragging-mode");
+  for (const [key, m] of Object.entries(markers)) {
+    if (!map.hasLayer(m)) continue;
+    const ll = m.getLatLng();
+    dragOriginalPositions[key] = { lat: ll.lat, lng: ll.lng };
+    m.dragging.enable();
+    const handler = function() {
+      const nll = m.getLatLng();
+      const parts = key.split("-");
+      const kind = parts[0];
+      const id = parseInt(parts[1]);
+      dragMovedItems[key] = { lat: nll.lat, lng: nll.lng, kind, id, label: markerLabels[key] || key };
+      if (kind === "gateway" && radiusCircles[key]) {
+        radiusCircles[key].setLatLng(nll);
+      }
+    };
+    dragEndHandlers[key] = handler;
+    m.on("dragend", handler);
+  }
+}
+
+function finishDragMode() {
+  const moved = Object.values(dragMovedItems);
+  if (moved.length === 0) { exitDragMode(); return; }
+  const list = document.getElementById("drag-changed-list");
+  list.innerHTML = "";
+  moved.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = item.label || `${item.kind} #${item.id}`;
+    list.appendChild(li);
+  });
+  document.getElementById("nb-drag-confirm-modal").classList.add("open");
+}
+
+function confirmDragChanges() {
+  document.getElementById("nb-drag-confirm-modal").classList.remove("open");
+  const items = Object.values(dragMovedItems).map(item => ({
+    kind: item.kind, id: item.id, lat: item.lat, lng: item.lng,
+  }));
+  fetch(URL_BATCH_REPOSITION, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
+    body: JSON.stringify({ items }),
+  }).then(r => r.json()).then(d => {
+    if (!d.ok) console.error("batch_reposition error", d);
+    for (const item of items) {
+      if (item.kind === "node") {
+        nodeCoords[item.id] = [item.lng, item.lat];
+      } else if (item.kind === "gateway") {
+        gwData[item.id] = { ...gwData[item.id], lat: item.lat, lng: item.lng };
+      }
+    }
+    rebuildNearestEdges();
+    rebuildAllEdges();
+    exitDragMode();
+  });
+}
+
+function cancelDragChanges() {
+  document.getElementById("nb-drag-confirm-modal").classList.remove("open");
+  for (const [key, orig] of Object.entries(dragOriginalPositions)) {
+    const m = markers[key];
+    if (!m) continue;
+    m.setLatLng([orig.lat, orig.lng]);
+    if (key.startsWith("gateway-") && radiusCircles[key]) {
+      radiusCircles[key].setLatLng([orig.lat, orig.lng]);
+    }
+  }
+  exitDragMode();
+}
+
+function exitDragMode() {
+  dragMode = false;
+  document.getElementById("btn-drag-mode").style.display = "";
+  document.getElementById("btn-drag-done").style.display = "none";
+  document.getElementById("btn-drag-mode").classList.remove("active");
+  document.getElementById("navis-map").classList.remove("dragging-mode");
+  for (const [key, m] of Object.entries(markers)) {
+    if (dragEndHandlers[key]) {
+      m.off("dragend", dragEndHandlers[key]);
+      delete dragEndHandlers[key];
+    }
+    m.dragging.disable();
+  }
+  for (const k in dragOriginalPositions) delete dragOriginalPositions[k];
+  for (const k in dragMovedItems) delete dragMovedItems[k];
+}
+
+// ── Map setup ─────────────────────────────────────────────────────────────────
+const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
+});
+const sat = L.tileLayer(
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  { attribution: "Tiles &copy; Esri", maxZoom: 19 }
+);
+const hybridBase = L.tileLayer(
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  { attribution: "Tiles &copy; Esri", maxZoom: 19 }
+);
+const hybridLabels = L.tileLayer(
+  "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+  { maxZoom: 19, opacity: 1 }
+);
+const hybrid = L.layerGroup([hybridBase, hybridLabels]);
+
+const map = L.map("navis-map", { layers: [sat] }).setView([MAP_LAT, MAP_LNG], MAP_ZOOM);
+L.control.layers({ "Satellite": sat, "Street": osm, "Hybrid": hybrid }, {}, { position: "topleft" }).addTo(map);
+
+// ── Custom panes for z-ordering ────────────────────────────────────────────────
+map.createPane("edgePane").style.zIndex    = 380;
+map.createPane("radiusPane").style.zIndex  = 390;
+map.createPane("nodePane").style.zIndex    = 450;
+map.createPane("gatewayPane").style.zIndex = 500;
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
+let showNodeNumbers = true;
+
+function nodeIcon(tankCount, ghost) {
+  const op = ghost ? "0.45" : "1";
+  const n = typeof tankCount === "number" ? tankCount : 0;
+  if (showNodeNumbers) {
+    return L.divIcon({
+      html: `<div class="nb-node-marker" style="opacity:${op}">${n}</div>`,
+      iconSize: [22, 22], iconAnchor: [11, 11], className: "",
+    });
+  } else {
+    return L.divIcon({
+      html: `<div class="nb-node-marker nb-node-marker-slim" style="opacity:${op}"></div>`,
+      iconSize: [16, 16], iconAnchor: [8, 8], className: "",
+    });
+  }
+}
+
+function gatewayIcon(color, ghost) {
+  const op = ghost ? "0.45" : "1";
+  const c = color || "#16a34a";
+  return L.divIcon({
+    html: `<div style="opacity:${op};position:relative;width:36px;height:32px">
+      <svg width="36" height="32" viewBox="0 0 36 32" style="position:absolute;top:0;left:0;filter:drop-shadow(0 2px 4px rgba(0,0,0,.45))">
+        <polygon points="18,2 34,30 2,30" fill="${c}" stroke="#fff" stroke-width="2"/>
+        <text x="18" y="24" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="#fff">GW</text>
+      </svg>
+    </div>`,
+    iconSize: [36, 32], iconAnchor: [18, 32], className: "",
+  });
+}
+
+// ── Draw all features from initial data ───────────────────────────────────────
+GEOJSON.features.forEach(f => {
+  if (f.properties.kind === "node") {
+    nodeCoords[f.properties.id] = f.geometry.coordinates;
+    nodeParish[f.properties.id] = f.properties.parish || "";
+    nodeTankCount[f.properties.id] = f.properties.tank_count || 0;
+    markerLabels[`node-${f.properties.id}`] = `Node ${f.properties.label} (${f.properties.name})`;
+  } else if (f.properties.kind === "gateway") {
+    const [lng, lat] = f.geometry.coordinates;
+    gwData[f.properties.id] = { lat, lng, color: f.properties.entity_color, radius: f.properties.radius };
+    markerLabels[`gateway-${f.properties.id}`] = `Gateway ${f.properties.label} (${f.properties.entity_name})`;
+  }
+});
+
+GEOJSON.features.forEach(f => {
+  if (!f.geometry) return;
+  const p = f.properties, c = f.geometry.coordinates;
+  if (p.kind === "gateway") addGatewayMarker(p, c);
+  else if (p.kind === "node") addNodeMarker(p, c);
+});
+
+map.on("click", onMapClick);
+
+// ── Marker helpers ─────────────────────────────────────────────────────────────
+function refreshNodeIcon(nodeId) {
+  const m = markers[`node-${nodeId}`];
+  if (m) m.setIcon(nodeIcon(nodeTankCount[nodeId] || 0));
+}
+
+function addNodeMarker(props, coords, ghost) {
+  const [lng, lat] = coords;
+  const count = props.tank_count != null ? props.tank_count : (nodeTankCount[props.id] || 0);
+  const m = L.marker([lat, lng], { icon: nodeIcon(count, ghost), pane: "nodePane" });
+  if (!ghost) {
+    m.on("click", e => {
+      L.DomEvent.stopPropagation(e);
+      if (!placingMode) {
+        if (inspectMode) openInspectView(props.id);
+        else map.setView(m.getLatLng(), 19);
+      }
+    });
+    m.addTo(map);
+    markers[`node-${props.id}`] = m;
+    nodeTankCount[props.id] = count;
+  }
+  return m;
+}
+
+function addGatewayMarker(props, coords, ghost) {
+  const [lng, lat] = coords;
+  const color = props.entity_color || "#16a34a";
+  const m = L.marker([lat, lng], { icon: gatewayIcon(color, ghost), pane: "gatewayPane" });
+  if (!ghost) {
+    m.on("click", e => {
+      L.DomEvent.stopPropagation(e);
+      if (!placingMode) map.setView(m.getLatLng(), 19);
+    });
+    m.addTo(map);
+    markers[`gateway-${props.id}`] = m;
+    gwData[props.id] = { lat, lng, color, radius: props.radius };
+    const circle = L.circle([lat, lng], {
+      radius: props.radius,
+      color, fillColor: color, fillOpacity: 0.08, weight: 1.5, opacity: 0.5,
+      pane: "radiusPane",
+    });
+    radiusCircles[`gateway-${props.id}`] = circle;
+    if (document.getElementById("lyr-radius")?.checked) circle.addTo(map);
+  }
+  return m;
+}
+
+// ── GW edge helpers ────────────────────────────────────────────────────────────
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371, toR = Math.PI / 180;
+  const dLat = (lat2 - lat1) * toR, dLng = (lng2 - lng1) * toR;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*toR)*Math.cos(lat2*toR)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function nearestGw(nodeLat, nodeLng) {
+  let best = null, bestDist = Infinity;
+  for (const [id, gw] of Object.entries(gwData)) {
+    const d = haversineKm(nodeLat, nodeLng, gw.lat, gw.lng);
+    if (d < bestDist) { bestDist = d; best = { id: parseInt(id), ...gw }; }
+  }
+  return best;
+}
+
+function rebuildNearestEdges() {
+  Object.values(nearestEdges).forEach(l => map.removeLayer(l));
+  for (const k in nearestEdges) delete nearestEdges[k];
+  if (!document.getElementById("lyr-nearest-edges").checked) return;
+  for (const [key, m] of Object.entries(markers)) {
+    if (!key.startsWith("node-")) continue;
+    if (!map.hasLayer(m)) continue;
+    const nodeId = parseInt(key.split("-")[1]);
+    const [nlng, nlat] = nodeCoords[nodeId] || [];
+    if (nlat == null) continue;
+    const gw = nearestGw(nlat, nlng);
+    if (!gw) continue;
+    const line = L.polyline([[nlat, nlng], [gw.lat, gw.lng]], {
+      color: gw.color || "#2563eb", weight: 1.5, opacity: 0.5,
+      dashArray: "6 5", pane: "edgePane",
+    }).addTo(map);
+    nearestEdges[`node-${nodeId}`] = line;
+  }
+}
+
+function rebuildAllEdges() {
+  Object.values(allEdgesMap).forEach(l => map.removeLayer(l));
+  for (const k in allEdgesMap) delete allEdgesMap[k];
+  if (!document.getElementById("lyr-all-edges").checked) return;
+  for (const [key, m] of Object.entries(markers)) {
+    if (!key.startsWith("node-")) continue;
+    if (!map.hasLayer(m)) continue;
+    const nodeId = parseInt(key.split("-")[1]);
+    const [nlng, nlat] = nodeCoords[nodeId] || [];
+    if (nlat == null) continue;
+    for (const [gwId, gw] of Object.entries(gwData)) {
+      const line = L.polyline([[nlat, nlng], [gw.lat, gw.lng]], {
+        color: gw.color || "#2563eb", weight: 1, opacity: 0.25,
+        dashArray: "3 6", pane: "edgePane",
+      }).addTo(map);
+      allEdgesMap[`node-${nodeId}-gw-${gwId}`] = line;
+    }
+  }
+}
+
+// ── Placement mode ────────────────────────────────────────────────────────────
+function startAddGateway() {
+  if (placingMode === "gateway") { stopPlacing(); return; }
+  stopPlacing();
+  placingMode = "gateway";
+  document.getElementById("navis-map").classList.add("placing");
+  document.getElementById("btn-add-gateway").classList.add("active");
+}
+
+function startAddNode() {
+  if (placingMode === "node") { stopPlacing(); return; }
+  stopPlacing();
+  placingMode = "node";
+  document.getElementById("navis-map").classList.add("placing");
+  document.getElementById("btn-add-node").classList.add("active");
+}
+
+function stopPlacing() {
+  placingMode = null;
+  document.getElementById("navis-map").classList.remove("placing");
+  ["btn-add-gateway","btn-add-node"].forEach(id =>
+    document.getElementById(id).classList.remove("active"));
+  if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
+}
+
+function onMapClick(e) {
+  if (!placingMode) return;
+  const { lat, lng } = e.latlng;
+  if (tempMarker) map.removeLayer(tempMarker);
+  const ghostProps = { label: "", entity_color: "#16a34a" };
+  if (placingMode === "gateway") tempMarker = addGatewayMarker(ghostProps, [lng, lat], true);
+  else tempMarker = addNodeMarker(ghostProps, [lng, lat], true);
+  tempMarker.addTo(map);
+
+  if (placingMode === "node") {
+    // Open node-add modal with coordinates
+    document.getElementById("na-lat").value = lat;
+    document.getElementById("na-lng").value = lng;
+    const hint = document.getElementById("na-coord-hint");
+    hint.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    hint.classList.add("has-coord");
+    document.getElementById("nb-node-add-modal").classList.add("open");
+  } else if (placingMode === "gateway") {
+    // Open edit modal in create mode for gateway
+    editLatLng = { lat, lng };
+    openEditModal("gateway", null);
+  }
+}
+
+// ── Edit modal ────────────────────────────────────────────────────────────────
+function buildEditFields(kind) {
+  if (kind === "node") {
+    return `
+      <input type="hidden" id="ef-lat">
+      <input type="hidden" id="ef-lng">
+      <label class="nb-modal-label">Identifier</label>
+      <input type="text" class="nb-modal-input" id="ef-identifier" required>
+      <label class="nb-modal-label">Name</label>
+      <input type="text" class="nb-modal-input" id="ef-name" required>
+      <label class="nb-modal-label">Status</label>
+      <select class="nb-modal-input" id="ef-status">
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+        <option value="deployed">Deployed</option>
+        <option value="problem">Problem</option>
+        <option value="unresponsive">Unresponsive</option>
+        <option value="maintenance">Maintenance</option>
+      </select>
+      <label class="nb-modal-label">Parish</label>
+      <select class="nb-modal-input" id="ef-parish">
+        <option value="">—</option>
+        {% for p in parishes %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+      </select>
+      <p class="nb-coord-hint" id="ef-coord-hint">Location set from map.</p>`;
+  } else if (kind === "tank") {
+    return `
+      <label class="nb-modal-label">Alpha ID</label>
+      <input type="text" class="nb-modal-input" id="ef-alpha_id" required>
+      <label class="nb-modal-label">Capacity</label>
+      <input type="number" class="nb-modal-input" id="ef-capacity" step="any" required>
+      <label class="nb-modal-label">Node</label>
+      <select class="nb-modal-input" id="ef-node">
+        {% for node in nodes %}<option value="{{ node.id }}">{{ node.identifier }} — {{ node.name }}</option>{% endfor %}
+      </select>
+      <label class="nb-modal-label">Status</label>
+      <select class="nb-modal-input" id="ef-status">
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <label class="nb-modal-label">Issue</label>
+      <select class="nb-modal-input" id="ef-issue">
+        <option value="ok">Ok!</option>
+        <option value="empty">Low Volume</option>
+        <option value="parameter">Unsafe Parameter</option>
+        <option value="pump">Pump</option>
+        <option value="comms">Undetectable</option>
+      </select>`;
+  } else if (kind === "gateway") {
+    return `
+      <input type="hidden" id="ef-lat">
+      <input type="hidden" id="ef-lng">
+      <label class="nb-modal-label">Identifier</label>
+      <input type="text" class="nb-modal-input" id="ef-identifier" required>
+      <label class="nb-modal-label">Name</label>
+      <input type="text" class="nb-modal-input" id="ef-name" required>
+      <label class="nb-modal-label">Entity</label>
+      <select class="nb-modal-input" id="ef-entity">
+        {% for entity in entities %}<option value="{{ entity.id }}">{{ entity.short_name }}</option>{% endfor %}
+      </select>
+      <label class="nb-modal-label">Spreading Factor (SF7–SF12)</label>
+      <input type="number" class="nb-modal-input" id="ef-spreading_factor" min="7" max="12" value="9" required>
+      <label class="nb-modal-label">Radius (m)</label>
+      <input type="number" class="nb-modal-input" id="ef-radius" min="1" required>
+      <label class="nb-modal-label">Status</label>
+      <select class="nb-modal-input" id="ef-status">
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <p class="nb-coord-hint" id="ef-coord-hint">Location set from map.</p>`;
+  }
+  return "";
+}
+
+function openEditModal(kind, id, nodeId) {
+  editKind = kind;
+  editItemId = id;
+  editNodeId = nodeId || null;
+  const area = document.getElementById("edit-modal-fields");
+  area.innerHTML = buildEditFields(kind);
+  document.getElementById("edit-modal-title").textContent = id ? `Edit ${cap(kind)}` : `New ${cap(kind)}`;
+  document.getElementById("edit-btn-delete").style.display = id ? "" : "none";
+  document.getElementById("nb-edit-errors").textContent = "";
+
+  if (id) {
+    // Editing existing item — fetch data
+    fetch(`/navis/${kind}/${id}/edit/`).then(r => r.json()).then(d => {
+      if (kind === "node") {
+        setV("ef-identifier", d.identifier); setV("ef-name", d.name);
+        setV("ef-status", d.status); setV("ef-parish", d.parish || "");
+        setV("ef-lat", d.lat); setV("ef-lng", d.lng);
+        const hint = document.getElementById("ef-coord-hint");
+        if (hint) { hint.textContent = `${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}`; hint.classList.add("has-coord"); }
+      } else if (kind === "tank") {
+        setV("ef-alpha_id", d.alpha_id); setV("ef-capacity", d.capacity);
+        setV("ef-node", d.node_id); setV("ef-status", d.status); setV("ef-issue", d.issue);
+      } else if (kind === "gateway") {
+        setV("ef-identifier", d.identifier); setV("ef-name", d.name);
+        setV("ef-entity", d.entity_id); setV("ef-spreading_factor", d.spreading_factor);
+        setV("ef-radius", d.radius); setV("ef-status", d.status);
+        setV("ef-lat", d.lat); setV("ef-lng", d.lng);
+        const hint = document.getElementById("ef-coord-hint");
+        if (hint) { hint.textContent = `${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}`; hint.classList.add("has-coord"); }
+      }
+    });
+  } else {
+    // Creating new item
+    if (kind === "tank" && nodeId) {
+      setV("ef-node", nodeId);
+    }
+    if ((kind === "node" || kind === "gateway") && editLatLng) {
+      setV("ef-lat", editLatLng.lat); setV("ef-lng", editLatLng.lng);
+      const hint = document.getElementById("ef-coord-hint");
+      if (hint) { hint.textContent = `${editLatLng.lat.toFixed(5)}, ${editLatLng.lng.toFixed(5)}`; hint.classList.add("has-coord"); }
+      editLatLng = null;
+    }
+  }
+  document.getElementById("nb-edit-modal").classList.add("open");
+}
+
+function closeEditModal() {
+  document.getElementById("nb-edit-modal").classList.remove("open");
+  editKind = null; editItemId = null; editNodeId = null; editLatLng = null;
+}
+
+function submitEditForm(e) {
+  e.preventDefault();
+  const fd = new FormData();
+  fd.append("csrfmiddlewaretoken", CSRF);
+
+  if (editKind === "node") {
+    fd.append("identifier", gV("ef-identifier"));
+    fd.append("name", gV("ef-name"));
+    fd.append("status", gV("ef-status"));
+    fd.append("parish", gV("ef-parish"));
+    fd.append("lat", gV("ef-lat"));
+    fd.append("lng", gV("ef-lng"));
+    if (!editItemId && (!gV("ef-lat") || !gV("ef-lng"))) {
+      document.getElementById("nb-edit-errors").textContent = "Click the map first to set a location.";
+      return;
+    }
+  } else if (editKind === "tank") {
+    fd.append("alpha_id", gV("ef-alpha_id"));
+    fd.append("capacity", gV("ef-capacity"));
+    fd.append("node", gV("ef-node"));
+    fd.append("status", gV("ef-status"));
+    fd.append("issue", gV("ef-issue"));
+  } else if (editKind === "gateway") {
+    fd.append("identifier", gV("ef-identifier"));
+    fd.append("name", gV("ef-name"));
+    fd.append("entity", gV("ef-entity"));
+    fd.append("spreading_factor", gV("ef-spreading_factor"));
+    fd.append("radius", gV("ef-radius"));
+    fd.append("status", gV("ef-status"));
+    fd.append("lat", gV("ef-lat"));
+    fd.append("lng", gV("ef-lng"));
+    if (!editItemId && (!gV("ef-lat") || !gV("ef-lng"))) {
+      document.getElementById("nb-edit-errors").textContent = "Click the map first to set a location.";
+      return;
+    }
+  }
+
+  const url = editItemId
+    ? `/navis/${editKind}/${editItemId}/edit/`
+    : (editKind === "node" ? URL_NODE_CREATE : editKind === "tank" ? URL_TANK_CREATE : URL_GW_CREATE);
+
+  fetch(url, { method: "POST", headers: { "X-CSRFToken": CSRF }, body: fd })
+    .then(r => r.json())
+    .then(d => {
+      if (!d.ok) {
+        document.getElementById("nb-edit-errors").textContent = Object.values(d.errors).flat().join(" | ");
+        return;
+      }
+      if (editItemId) {
+        // Update existing
+        const mKey = `${editKind}-${editItemId}`;
+        const m = markers[mKey];
+        const lat = parseFloat(gV("ef-lat"));
+        const lng = parseFloat(gV("ef-lng"));
+        if (m && !isNaN(lat) && !isNaN(lng)) {
+          m.setLatLng([lat, lng]);
+          if (editKind === "node") m.setIcon(nodeIcon(nodeTankCount[editItemId] || 0));
+        }
+        if (editKind === "node" && !isNaN(lat)) nodeCoords[editItemId] = [lng, lat];
+        if (editKind === "gateway" && !isNaN(lat)) {
+          if (radiusCircles[mKey]) {
+            radiusCircles[mKey].setLatLng([lat, lng]);
+            radiusCircles[mKey].setRadius(parseInt(gV("ef-radius")) || 0);
+          }
+          if (gwData[editItemId]) { gwData[editItemId].lat = lat; gwData[editItemId].lng = lng; }
+        }
+        if (editKind === "node" || editKind === "gateway") {
+          rebuildNearestEdges(); rebuildAllEdges();
+        }
+        // Update sidebar text for edited items
+        updateSidebarAfterEdit(editKind, editItemId);
+      } else {
+        // Created new
+        if (editKind === "node") {
+          addNodeMarker({ id: d.id, label: d.identifier, tank_count: 0 }, [d.lng, d.lat]);
+          nodeCoords[d.id] = [d.lng, d.lat];
+          markerLabels[`node-${d.id}`] = `Node ${d.identifier} (${d.name})`;
+          addSidebarNode(d);
+          if (!document.getElementById("lyr-nodes").checked) map.removeLayer(markers[`node-${d.id}`]);
+          rebuildNearestEdges(); rebuildAllEdges();
+        } else if (editKind === "tank") {
+          tankDataMap[d.id] = { id: d.id, label: d.alpha_id, capacity: d.capacity, status: d.status, issue: d.issue, node_id: d.node_id };
+          addSidebarTank(d);
+          nodeTankCount[d.node_id] = (nodeTankCount[d.node_id] || 0) + 1;
+          refreshNodeIcon(d.node_id);
+          if (document.getElementById("lyr-tanks").checked) renderTankLayer();
+        } else if (editKind === "gateway") {
+          addGatewayMarker({ id: d.id, label: d.identifier, name: d.name, status: d.status,
+            radius: d.radius, entity_color: d.entity_color }, [d.lng, d.lat]);
+          markerLabels[`gateway-${d.id}`] = `Gateway ${d.identifier} (${d.entity_name})`;
+          addSidebarGateway(d);
+          if (!document.getElementById("lyr-gateways").checked) map.removeLayer(markers[`gateway-${d.id}`]);
+          rebuildNearestEdges(); rebuildAllEdges();
+        }
+      }
+      stopPlacing();
+      closeEditModal();
+      updateStats();
+    });
+}
+
+function deleteEditItem() {
+  if (!confirm("Delete this item?")) return;
+  fetch(`/navis/${editKind}/${editItemId}/delete/`, { method: "POST", headers: { "X-CSRFToken": CSRF } })
+    .then(() => {
+      const key = `${editKind}-${editItemId}`;
+      if (markers[key]) { map.removeLayer(markers[key]); delete markers[key]; }
+      if (edges[key])   { map.removeLayer(edges[key]);   delete edges[key]; }
+      if (radiusCircles[key]) { map.removeLayer(radiusCircles[key]); delete radiusCircles[key]; }
+      if (editKind === "node")    delete nodeCoords[editItemId];
+      if (editKind === "gateway") delete gwData[editItemId];
+      if (editKind === "tank") {
+        delete tankCapacities[editItemId];
+        delete tankDataMap[editItemId];
+        const tKey = `tank-${editItemId}`;
+        if (tankMarkers[tKey]) { map.removeLayer(tankMarkers[tKey]); delete tankMarkers[tKey]; }
+        if (tankEdges[tKey])   { map.removeLayer(tankEdges[tKey]);   delete tankEdges[tKey]; }
+        const nodeId = parseInt(gV("ef-node"));
+        if (nodeId) {
+          nodeTankCount[nodeId] = Math.max(0, (nodeTankCount[nodeId] || 1) - 1);
+          refreshNodeIcon(nodeId);
+          if (document.getElementById("lyr-tanks").checked) renderTankLayer();
+        }
+      }
+      document.getElementById(`sidebar-${editKind}-${editItemId}`)?.remove();
+      rebuildNearestEdges(); rebuildAllEdges();
+      updateStats();
+      closeEditModal();
+    });
+}
+
+function updateSidebarAfterEdit(kind, id) {
+  // Refresh sidebar display for edited item
+  if (kind === "node") {
+    const el = document.getElementById(`sidebar-node-${id}`);
+    if (!el) return;
+    const idSpan = el.querySelector(".nb-field-id");
+    const nameSpan = el.querySelector(".nb-field-name");
+    const badgeSpan = el.querySelector(".nb-field-badge");
+    const coordSpan = el.querySelector(".nb-field-coord");
+    if (idSpan) idSpan.textContent = gV("ef-identifier");
+    if (nameSpan) nameSpan.textContent = gV("ef-name");
+    if (badgeSpan) {
+      badgeSpan.textContent = gV("ef-status");
+      badgeSpan.className = `nb-field-badge nb-badge-${gV("ef-status")}`;
+    }
+    const lat = parseFloat(gV("ef-lat")), lng = parseFloat(gV("ef-lng"));
+    if (coordSpan && !isNaN(lat)) coordSpan.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  } else if (kind === "tank") {
+    const el = document.getElementById(`sidebar-tank-${id}`);
+    if (!el) return;
+    const idSpan = el.querySelector(".nb-field-id");
+    const capSpan = el.querySelector(".nb-field-cap");
+    const badgeSpan = el.querySelector(".nb-field-badge");
+    if (idSpan) idSpan.textContent = gV("ef-alpha_id");
+    if (capSpan) capSpan.textContent = gV("ef-capacity");
+    if (badgeSpan) {
+      badgeSpan.textContent = gV("ef-status");
+      badgeSpan.className = `nb-field-badge nb-badge-${gV("ef-status")}`;
+    }
+    // Update tankCapacities for stats
+    tankCapacities[id] = parseFloat(gV("ef-capacity")) || 0;
+  }
+  // Gateway sidebar updates would need more logic; for now the detail panel keeps initial values
+}
+
+// ── Node add modal (with inline tanks) ─────────────────────────────────────────
+function addTankRow() {
+  const container = document.getElementById("na-tank-rows");
+  const row = document.createElement("div");
+  row.className = "nb-tank-inline-row";
+  row.innerHTML = `
+    <div>
+      <label class="nb-modal-label">Alpha ID</label>
+      <input type="text" class="nb-modal-input na-tank-alpha" required placeholder="e.g. TK-A">
+    </div>
+    <div>
+      <label class="nb-modal-label">Capacity</label>
+      <input type="number" class="nb-modal-input na-tank-cap" value="100" step="any" min="0">
+    </div>
+    <button type="button" class="nb-remove-tank-row" onclick="this.parentElement.remove()" title="Remove">×</button>`;
+  container.appendChild(row);
+}
+
+function closeNodeAdd() {
+  document.getElementById("nb-node-add-modal").classList.remove("open");
+  stopPlacing();
+  // Reset form
+  document.getElementById("nb-node-add-form").reset();
+  document.getElementById("na-tank-rows").innerHTML = "";
+  const hint = document.getElementById("na-coord-hint");
+  hint.textContent = "Click the map to set node location.";
+  hint.classList.remove("has-coord");
+  document.getElementById("nb-node-add-errors").textContent = "";
+}
+
+function submitNodeAdd(e) {
+  e.preventDefault();
+  const lat = parseFloat(document.getElementById("na-lat").value);
+  const lng = parseFloat(document.getElementById("na-lng").value);
+  if (isNaN(lat) || isNaN(lng)) {
+    document.getElementById("nb-node-add-errors").textContent = "Click the map first to set a location.";
+    return;
+  }
+
+  // Collect tank rows
+  const tanks = [];
+  document.querySelectorAll(".nb-tank-inline-row").forEach(row => {
+    const alpha = row.querySelector(".na-tank-alpha").value.trim();
+    const cap = parseFloat(row.querySelector(".na-tank-cap").value) || 100;
+    if (alpha) tanks.push({ alpha_id: alpha, capacity: cap });
+  });
+
+  const payload = {
+    identifier: document.getElementById("na-identifier").value.trim(),
+    name: document.getElementById("na-name").value.trim(),
+    status: document.getElementById("na-status").value,
+    parish: document.getElementById("na-parish").value,
+    lat, lng,
+    tanks,
+  };
+
+  fetch(URL_NODE_CREATE_WITH_TANKS, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
+    body: JSON.stringify(payload),
+  }).then(r => r.json()).then(d => {
+    if (!d.ok) {
+      document.getElementById("nb-node-add-errors").textContent = Object.values(d.errors).flat().join(" | ");
+      return;
+    }
+    const nd = d.node;
+    addNodeMarker({ id: nd.id, label: nd.identifier, tank_count: d.tanks.length }, [nd.lng, nd.lat]);
+    nodeCoords[nd.id] = [nd.lng, nd.lat];
+    nodeParish[nd.id] = nd.parish || "";
+    markerLabels[`node-${nd.id}`] = `Node ${nd.identifier} (${nd.name})`;
+    addSidebarNode(nd);
+    d.tanks.forEach(t => {
+      tankDataMap[t.id] = { id: t.id, label: t.alpha_id, capacity: t.capacity, status: t.status, issue: t.issue, node_id: nd.id };
+      tankCapacities[t.id] = t.capacity;
+      addSidebarTank(t);
+    });
+    nodeTankCount[nd.id] = d.tanks.length;
+    refreshNodeIcon(nd.id);
+    if (!document.getElementById("lyr-nodes").checked) map.removeLayer(markers[`node-${nd.id}`]);
+    rebuildNearestEdges();
+    rebuildAllEdges();
+    updateStats();
+    closeNodeAdd();
+  });
+}
+
+// ── Layer toggles ─────────────────────────────────────────────────────────────
+function setLayerVisible(keys, visible) {
+  keys.forEach(key => {
+    const m = markers[key];
+    if (!m) return;
+    if (visible) m.addTo(map); else map.removeLayer(m);
+  });
+}
+
+document.getElementById("lyr-gateways").addEventListener("change", function() {
+  setLayerVisible(Object.keys(markers).filter(k => k.startsWith("gateway-")), this.checked);
+  syncRadiusCircles();
+  rebuildNearestEdges();
+  rebuildAllEdges();
+});
+document.getElementById("lyr-nodes").addEventListener("change", function() {
+  applyParishFilter();
+  const tanksCb = document.getElementById("lyr-tanks");
+  tanksCb.disabled = !this.checked;
+  if (!this.checked && tanksCb.checked) { tanksCb.checked = false; removeTankLayer(); }
+});
+document.getElementById("lyr-tanks").addEventListener("change", function() {
+  if (this.checked) renderTankLayer(); else removeTankLayer();
+});
+document.getElementById("lyr-tanks").disabled = !document.getElementById("lyr-nodes").checked;
+document.getElementById("lyr-radius").addEventListener("change", syncRadiusCircles);
+document.getElementById("lyr-nearest-edges").addEventListener("change", rebuildNearestEdges);
+document.getElementById("lyr-all-edges").addEventListener("change", rebuildAllEdges);
+document.getElementById("map-opacity").addEventListener("input", function() {
+  map.getPane("tilePane").style.opacity = this.value / 100;
+  document.getElementById("map-opacity-val").textContent = this.value + "%";
+});
+
+function syncRadiusCircles() {
+  const gwVisible  = document.getElementById("lyr-gateways").checked;
+  const showRadius = document.getElementById("lyr-radius").checked;
+  Object.values(radiusCircles).forEach(c => {
+    if (gwVisible && showRadius) c.addTo(map); else map.removeLayer(c);
+  });
+}
+
+function applyParishFilter() {
+  const parish = document.getElementById("lyr-parish").value;
+  const nodesVisible = document.getElementById("lyr-nodes").checked;
+  document.querySelectorAll("#nb-nodes-grid .nb-node").forEach(el => {
+    const match = !parish || el.dataset.parish === parish;
+    el.style.display = match ? "" : "none";
+  });
+  for (const [key, m] of Object.entries(markers)) {
+    if (key.startsWith("node-")) {
+      const nodeId = parseInt(key.split("-")[1]);
+      const match = !parish || nodeParish[nodeId] === parish;
+      if (match && nodesVisible) m.addTo(map); else map.removeLayer(m);
+    }
+  }
+  rebuildNearestEdges();
+  rebuildAllEdges();
+}
+
+// ── Entity modal ──────────────────────────────────────────────────────────────
+function openEntityModal(id) {
+  activeEntityId = id || null;
+  document.getElementById("entity-modal-title").textContent = id ? "Edit Entity" : "New Entity";
+  document.getElementById("entity-btn-delete").style.display = id ? "" : "none";
+  document.getElementById("nb-entity-errors").textContent = "";
+  ["e-slug","e-short_name","e-full_name","e-description"].forEach(f => setV(f, ""));
+  setV("e-color", "#64748b");
+  if (id) {
+    fetch(`/navis/entity/${id}/edit/`).then(r => r.json()).then(d => {
+      setV("e-slug", d.slug); setV("e-short_name", d.short_name); setV("e-full_name", d.full_name);
+      setV("e-description", d.description); setV("e-color", d.color);
+    });
+  }
+  document.getElementById("nb-entity-modal").classList.add("open");
+}
+
+function closeEntityModal() {
+  document.getElementById("nb-entity-modal").classList.remove("open");
+  activeEntityId = null;
+}
+
+function submitEntityForm(e) {
+  e.preventDefault();
+  const url = activeEntityId ? `/navis/entity/${activeEntityId}/edit/` : URL_ENTITY_CREATE;
+  fetch(url, { method: "POST", headers: { "X-CSRFToken": CSRF }, body: new FormData(e.target) })
+    .then(r => r.json())
+    .then(d => {
+      if (!d.ok) {
+        document.getElementById("nb-entity-errors").textContent = Object.values(d.errors).flat().join(" | ");
+        return;
+      }
+      if (!activeEntityId) {
+        document.querySelectorAll("#ef-entity").forEach(sel => {
+          const opt = document.createElement("option");
+          opt.value = d.id; opt.textContent = d.short_name;
+          sel.appendChild(opt);
+        });
+      }
+      closeEntityModal();
+    });
+}
+
+function deleteEntity() {
+  if (!confirm("Delete this entity? Gateways assigned to it will block deletion.")) return;
+  fetch(`/navis/entity/${activeEntityId}/delete/`, { method: "POST", headers: { "X-CSRFToken": CSRF } })
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) closeEntityModal();
+      else document.getElementById("nb-entity-errors").textContent = "Cannot delete — entity is in use.";
+    });
+}
+
+// ── Toggle gateway detail ─────────────────────────────────────────────────────
+function toggleGwDetail(id) {
+  document.getElementById(`sidebar-gateway-${id}`)?.classList.toggle("expanded");
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function toggleNode(el) { el.closest(".nb-node").classList.toggle("open"); }
+function expandNodeInSidebar(nodeId) {
+  const el = document.getElementById(`sidebar-node-${nodeId}`);
+  if (el) { el.classList.add("open"); el.scrollIntoView({ behavior: "smooth" }); }
+}
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function setV(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+function gV(id) { const el = document.getElementById(id); return el ? el.value : ""; }
+
+// Close modals on backdrop click
+["nb-entity-modal","nb-drag-confirm-modal","nb-edit-modal","nb-node-add-modal"].forEach(id => {
+  document.getElementById(id).addEventListener("click", function(e) {
+    if (e.target === this) {
+      if (id === "nb-edit-modal") closeEditModal();
+      else if (id === "nb-node-add-modal") closeNodeAdd();
+      else if (id === "nb-drag-confirm-modal") cancelDragChanges();
+      else closeEntityModal();
+    }
+  });
+});
+
+document.getElementById("btn-add-gateway").addEventListener("click", startAddGateway);
+document.getElementById("btn-add-node").addEventListener("click", startAddNode);
+document.getElementById("btn-add-entity").addEventListener("click", () => openEntityModal(null));
+
+// ── Live sidebar updates ───────────────────────────────────────────────────────
+function addSidebarGateway(d) {
+  document.getElementById("nb-empty-gw-msg")?.remove();
+  const grid = document.getElementById("nb-gw-grid");
+  const logoHtml = d.entity_logo
+    ? `<img src="${d.entity_logo}" class="nb-gw-logo" alt="${d.entity_name}">`
+    : `<div class="nb-gw-logo-fallback" style="background:${d.entity_color}">${(d.entity_name||"").slice(0,2).toUpperCase()}</div>`;
+  const div = document.createElement("div");
+  div.className = "nb-gw-row";
+  div.id = `sidebar-gateway-${d.id}`;
+  div.innerHTML = `
+    <div class="nb-gw-main" onclick="toggleGwDetail(${d.id})">
+      ${logoHtml}
+      <span class="nb-gw-info">
+        <span class="nb-gw-id">${d.identifier}</span>
+        <span class="nb-gw-entity">${d.entity_full_name || d.entity_name}</span>
+        <span class="nb-gw-cap">SF${d.spreading_factor} <span class="nb-field-badge nb-badge-${d.status}">${d.status}</span></span>
+      </span>
+      <div class="nb-gw-actions">
+        <button class="nb-edit-btn" onclick="event.stopPropagation();toggleGwDetail(${d.id})" title="Toggle details">👁</button>
+        <button class="nb-edit-btn" onclick="event.stopPropagation();openEditModal('gateway', ${d.id})" title="Edit gateway">✏</button>
+      </div>
+    </div>
+    <div class="nb-gw-detail" id="gw-detail-${d.id}">
+      <div class="nb-gw-detail-row"><dt>Name</dt><dd>${d.name}</dd></div>
+      <div class="nb-gw-detail-row"><dt>Entity</dt><dd>${d.entity_full_name || d.entity_name}</dd></div>
+      <div class="nb-gw-detail-row"><dt>Spreading factor</dt><dd>SF${d.spreading_factor}</dd></div>
+      <div class="nb-gw-detail-row"><dt>Radius</dt><dd>${d.radius} m</dd></div>
+      <div class="nb-gw-detail-row"><dt>Coordinates</dt><dd style="font-family:monospace">${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}</dd></div>
+    </div>`;
+  grid.appendChild(div);
+  updateStats();
+}
+
+function addSidebarNode(d) {
+  document.getElementById("nb-empty-msg")?.remove();
+  const list = document.getElementById("nb-nodes-grid") || document.getElementById("nb-node-list");
+  const div  = document.createElement("div");
+  div.className = "nb-node";
+  div.dataset.nodeId = d.id;
+  div.dataset.parish = d.parish || "";
+  div.id = `sidebar-node-${d.id}`;
+  div.innerHTML = `
+    <div class="nb-node-header">
+      <span class="dot" style="width:9px;height:9px;border-radius:50%;background:#2563eb;margin-top:3px;flex-shrink:0"></span>
+      <span class="nb-caret" onclick="toggleNode(this.closest('.nb-node-header'))">▶</span>
+      <span class="nb-node-fields" onclick="toggleNode(this.closest('.nb-node-header'))">
+        <span class="nb-field-id">${d.identifier}</span>
+        <span class="nb-field-name">${d.name}</span>
+        <span class="nb-field-badge nb-badge-${d.status}">${d.status}</span>
+        <span class="nb-field-coord">${d.lat.toFixed(4)}, ${d.lng.toFixed(4)}</span>
+      </span>
+      <button class="nb-edit-btn" onclick="openEditModal('node', ${d.id})" title="Edit node">✏</button>
+    </div>
+    <div class="nb-tank-list" id="tank-list-${d.id}">
+      <div class="nb-empty-tanks" style="padding:3px 7px;color:var(--c-text-muted);font-size:11px">No tanks</div>
+      <button class="nb-add-tank-btn" onclick="openEditModal('tank', null, ${d.id})">+ add tank</button>
+    </div>`;
+  list.appendChild(div);
+  // Add option to node selects in edit modal (rebuilt each time, but good for future tank creates)
+  updateStats();
+}
+
+function addSidebarTank(d) {
+  tankCapacities[d.id] = parseFloat(d.capacity) || 0;
+  const list = document.getElementById(`tank-list-${d.node_id}`);
+  if (!list) return;
+  list.querySelector(".nb-empty-tanks")?.remove();
+  const addBtn = list.querySelector(".nb-add-tank-btn");
+  const row = document.createElement("div");
+  row.className = "nb-tank-row";
+  row.id = `sidebar-tank-${d.id}`;
+  row.innerHTML = `
+    <span class="dot" style="width:7px;height:7px;border-radius:50%;background:#f97316;margin-top:3px;flex-shrink:0"></span>
+    <span class="nb-tank-fields" onclick="openEditModal('tank', ${d.id})">
+      <span class="nb-field-id">${d.alpha_id}</span>
+      <span class="nb-field-cap">${d.capacity}</span>
+      <span class="nb-field-badge nb-badge-${d.status}">${d.status}</span>
+    </span>
+    <button class="nb-edit-btn" onclick="openEditModal('tank', ${d.id})" title="Edit tank">✏</button>`;
+  list.insertBefore(row, addBtn);
+  updateStats();
+}
+
+// ── Statistics ────────────────────────────────────────────────────────────────
+const tankCapacities = {};
+GEOJSON.features.forEach(f => {
+  if (f.properties.kind === "tank") tankCapacities[f.properties.id] = f.properties.capacity || 0;
+});
+
+function statsNodeCount() { return Object.keys(nodeCoords).length; }
+function statsGwCount()   { return Object.keys(gwData).length; }
+function statsTotalCapL() { return Object.values(tankCapacities).reduce((s, v) => s + v, 0); }
+
+function updateStats() {
+  const nodeCount = statsNodeCount();
+  const gwCount   = statsGwCount();
+  const totalCapL = statsTotalCapL();
+  const lpd       = parseFloat(document.getElementById("stat-lpd").value) || 3.5;
+  const targetPop = parseInt(document.getElementById("stat-target-pop").value) || 575739;
+  const uptime    = parseInt(document.getElementById("stat-uptime").value);
+  const uptimeDays = uptime / 24;
+
+  // Required capacity = lpd × targetPop × uptimeDays
+  const requiredL = lpd * targetPop * uptimeDays;
+
+  // Covered capacity %
+  const covPct = requiredL > 0 ? Math.round(totalCapL / requiredL * 100) : 0;
+
+  // Covered population
+  const pop = lpd > 0 ? Math.round(totalCapL / (lpd * uptimeDays)) : 0;
+  const popPct = Math.round(pop / targetPop * 100);
+
+  document.getElementById("stat-node-count").textContent = nodeCount;
+  document.getElementById("stat-avg-nodes").textContent  =
+    gwCount > 0 ? (nodeCount / gwCount).toFixed(1) : "—";
+  document.getElementById("stat-total-cap").textContent  =
+    Math.round(totalCapL / 1000) + " kL";
+  document.getElementById("stat-required-cap").textContent =
+    Math.round(requiredL / 1000) + " kL";
+  document.getElementById("stat-covered-cap").textContent =
+    Math.round(totalCapL / 1000) + " / " + Math.round(requiredL / 1000);
+  document.getElementById("stat-covered-pct").textContent = "(" + covPct + "%)";
+  document.getElementById("stat-pop").textContent =
+    pop.toLocaleString() + " / " + targetPop.toLocaleString();
+  document.getElementById("stat-pop-pct").textContent = "(" + popPct + "%)";
+  document.getElementById("stat-pop-target-label").textContent =
+    "vs " + targetPop.toLocaleString();
+}
+
+updateStats();
+
+// ── Tanks layer ───────────────────────────────────────────────────────────────
+const tankMarkers = {};
+const tankEdges   = {};
+const tankDataMap = {};
+
+GEOJSON.features.forEach(f => {
+  if (f.properties.kind === "tank") tankDataMap[f.properties.id] = f.properties;
+});
+
+map.createPane("tankPane").style.zIndex    = 420;
+map.createPane("tankEdgePane").style.zIndex = 410;
+
+function tankColor(status, issue) {
+  if (status === "inactive") return "#9ca3af";
+  if (issue === "ok") return "#16a34a";
+  if (issue === "empty") return "#f97316";
+  if (issue === "parameter") return "#eab308";
+  return "#dc2626";
+}
+
+function tankPositionsAroundNode(nodeLatLng, count, radiusM) {
+  const positions = [];
+  for (let i = 0; i < count; i++) {
+    const angle = (2 * Math.PI * i) / count - Math.PI / 2;
+    const latOff = (radiusM * Math.cos(angle)) / 111320;
+    const lngOff = (radiusM * Math.sin(angle)) / (111320 * Math.cos(nodeLatLng.lat * Math.PI / 180));
+    positions.push(L.latLng(nodeLatLng.lat + latOff, nodeLatLng.lng + lngOff));
+  }
+  return positions;
+}
+
+function renderTankLayer() {
+  removeTankLayer();
+  const tanksByNode = {};
+  for (const [id, t] of Object.entries(tankDataMap)) {
+    const nid = t.node_id;
+    if (!tanksByNode[nid]) tanksByNode[nid] = [];
+    tanksByNode[nid].push({ ...t, id: parseInt(id) });
+  }
+  for (const [nodeId, tanks] of Object.entries(tanksByNode)) {
+    const nc = nodeCoords[nodeId];
+    if (!nc) continue;
+    const nodeMarker = markers[`node-${nodeId}`];
+    if (nodeMarker && !map.hasLayer(nodeMarker)) continue;
+    const nodeLatLng = L.latLng(nc[1], nc[0]);
+    const positions = tankPositionsAroundNode(nodeLatLng, tanks.length, 8);
+    tanks.forEach((tank, i) => {
+      const pos = positions[i];
+      const color = tankColor(tank.status, tank.issue);
+      const cm = L.circleMarker(pos, {
+        radius: 6, color: "#fff", weight: 2, fillColor: color, fillOpacity: 0.9,
+        pane: "tankPane",
+      }).addTo(map);
+      cm.bindTooltip(`${tank.label} · ${tank.status}/${tank.issue}`, { direction: "top" });
+      cm.on("click", () => openEditModal('tank', tank.id));
+      tankMarkers[`tank-${tank.id}`] = cm;
+      const edge = L.polyline([nodeLatLng, pos], {
+        color: "#94a3b8", weight: 1.2, dashArray: "4 4", opacity: 0.7,
+        pane: "tankEdgePane",
+      }).addTo(map);
+      tankEdges[`tank-${tank.id}`] = edge;
+    });
+  }
+}
+
+function removeTankLayer() {
+  Object.values(tankMarkers).forEach(m => map.removeLayer(m));
+  Object.values(tankEdges).forEach(e => map.removeLayer(e));
+  for (const k in tankMarkers) delete tankMarkers[k];
+  for (const k in tankEdges) delete tankEdges[k];
+}
+
+// ── Inspect mode ──────────────────────────────────────────────────────────────
+let inspectMode = false;
+const URL_NODE_INSPECT_BASE = URL_NODE_CREATE.replace(/new\/$/, '');
+
+function toggleInspectMode() {
+  inspectMode = !inspectMode;
+  const btn = document.getElementById("btn-inspect-mode");
+  btn.classList.toggle("active", inspectMode);
+  document.getElementById("navis-map").style.cursor = inspectMode ? "zoom-in" : "";
+}
+
+document.getElementById("lyr-show-numbers").addEventListener("change", function() {
+  showNodeNumbers = this.checked;
+  for (const [key, m] of Object.entries(markers)) {
+    if (!key.startsWith("node-")) continue;
+    const nodeId = parseInt(key.split("-")[1]);
+    m.setIcon(nodeIcon(nodeTankCount[nodeId] || 0));
+  }
+});
+
+function openInspectView(nodeId) {
+  const overlay = document.getElementById("nb-inspect-overlay");
+  overlay.style.display = "block";
+  overlay.style.opacity = "0";
+  let originPct = "50% 50%";
+  const marker = markers[`node-${nodeId}`];
+  if (marker && map.hasLayer(marker)) {
+    const pt = map.latLngToContainerPoint(marker.getLatLng());
+    const mapEl = document.getElementById("navis-map");
+    const mapRect = mapEl.getBoundingClientRect();
+    const oRect = overlay.getBoundingClientRect();
+    const ox = ((mapRect.left - oRect.left + pt.x) / (oRect.width  || 1) * 100).toFixed(1);
+    const oy = ((mapRect.top  - oRect.top  + pt.y) / (oRect.height || 1) * 100).toFixed(1);
+    originPct = `${ox}% ${oy}%`;
+  }
+  fetch(`${URL_NODE_INSPECT_BASE}${nodeId}/inspect/`, {
+    headers: { "X-CSRFToken": CSRF },
+  }).then(r => r.json()).then(data => {
+    renderInspectView(nodeId, data, originPct);
+    overlay.style.opacity = "";
+  });
+}
+
+function renderInspectView(nodeId, data, originPct) {
+  const overlay = document.getElementById("nb-inspect-overlay");
+  const content = document.getElementById("nb-inspect-content");
+  const { node, tanks, nearest_gateway } = data;
+
+  const gwText = nearest_gateway
+    ? `Nearest GW: ${nearest_gateway.identifier} (${nearest_gateway.entity_short_name})`
+    : "No gateways";
+
+  const count = tanks.length;
+  const radius = 300;
+  const size   = radius * 2 + 280;
+  const cx = size / 2, cy = size / 2;
+
+  function shortenLine(x1, y1, x2, y2, m1, m2) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.sqrt(dx*dx + dy*dy) || 1;
+    const ux = dx/len, uy = dy/len;
+    return [x1 + ux*m1, y1 + uy*m1, x2 - ux*m2, y2 - uy*m2];
+  }
+
+  let svgLines = `<defs>
+    <marker id="arrowEnd" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowStart" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto-start-reverse">
+      <path d="M0,0 L0,6 L8,3 z" fill="#2563eb"/>
+    </marker>
+  </defs>`;
+
+  tanks.forEach((tank, i) => {
+    const angle = (2 * Math.PI * i) / Math.max(count, 1) - Math.PI / 2;
+    const tx = cx + radius * Math.cos(angle);
+    const ty = cy + radius * Math.sin(angle);
+    const [lx1, ly1, lx2, ly2] = shortenLine(cx, cy, tx, ty, 78, 82);
+    const midX = (lx1 + lx2) / 2, midY = (ly1 + ly2) / 2;
+    const lc = tank.last_contacted ? new Date(tank.last_contacted).toLocaleDateString() : "—";
+    const pdx = -(ly2 - ly1), pdy = (lx2 - lx1);
+    const plen = Math.sqrt(pdx*pdx + pdy*pdy) || 1;
+    const textX = midX + (pdx/plen)*16;
+    const textY = midY + (pdy/plen)*16;
+    const deg = Math.atan2(ly2-ly1, lx2-lx1) * 180 / Math.PI;
+    const rot = (deg > 90 || deg < -90) ? deg+180 : deg;
+
+    svgLines += `
+    <line x1="${lx1.toFixed(1)}" y1="${ly1.toFixed(1)}" x2="${lx2.toFixed(1)}" y2="${ly2.toFixed(1)}"
+      stroke="#2563eb" stroke-width="2.5" opacity="0.65"
+      marker-start="url(#arrowStart)" marker-end="url(#arrowEnd)"/>
+    <text x="${textX.toFixed(1)}" y="${textY.toFixed(1)}" text-anchor="middle" dominant-baseline="middle"
+      font-size="11" fill="#475569" font-family="sans-serif" font-weight="500"
+      transform="rotate(${rot.toFixed(1)},${textX.toFixed(1)},${textY.toFixed(1)})">last seen: ${lc}</text>`;
+  });
+
+  let html = `<div class="nb-inspect-diagram" id="nb-inspect-diagram" style="width:${size}px;height:${size}px;transform-origin:${originPct||'50% 50%'}">`;
+  html += `<svg class="nb-inspect-svg" width="${size}" height="${size}">${svgLines}</svg>`;
+
+  // Node capsule with pencil button
+  html += `<div class="nb-inspect-node-capsule" style="top:${cy}px;left:${cx}px;transform:translate(-50%,-50%);"
+    onclick="expandNodeInSidebar(${nodeId})">
+    <button class="nb-edit-btn" onclick="event.stopPropagation();openEditModal('node', ${nodeId})"
+      style="position:absolute;top:8px;right:8px;font-size:15px;z-index:4;" title="Edit node">✏</button>
+    <div class="nb-inspect-lbl">Node</div>
+    <div class="nb-inspect-val">${node.identifier}</div>
+    <div class="nb-inspect-subval">${node.name}</div>
+    <div style="margin-top:6px"><span class="nb-field-badge nb-badge-${node.status}">${node.status}</span></div>
+    <div class="nb-inspect-subval" style="margin-top:6px;font-size:10px;color:#3b82f6;">${gwText}</div>
+  </div>`;
+
+  // Tank capsules with pencil buttons
+  tanks.forEach((tank, i) => {
+    const angle = (2 * Math.PI * i) / Math.max(count, 1) - Math.PI / 2;
+    const tx = cx + radius * Math.cos(angle);
+    const ty = cy + radius * Math.sin(angle);
+    const borderColor = tankColor(tank.status, tank.issue);
+    html += `<div class="nb-inspect-tank-capsule" style="top:${ty}px;left:${tx}px;transform:translate(-50%,-50%);border-color:${borderColor};"
+      onclick="expandNodeInSidebar(${nodeId});document.getElementById('sidebar-tank-${tank.id}')?.scrollIntoView({behavior:'smooth'})">
+      <button class="nb-edit-btn" onclick="event.stopPropagation();openEditModal('tank', ${tank.id})"
+        style="position:absolute;top:6px;right:6px;font-size:13px;z-index:4;" title="Edit tank">✏</button>
+      <div class="nb-inspect-lbl">Tank</div>
+      <div class="nb-inspect-val">${tank.alpha_id}</div>
+      <div class="nb-inspect-subval">${tank.capacity} L</div>
+      <div style="margin-top:4px"><span class="nb-field-badge nb-badge-${tank.status}">${tank.status}</span></div>
+      <div class="nb-inspect-subval" style="margin-top:2px">${tank.issue}</div>
+    </div>`;
+  });
+
+  html += `</div>`;
+  content.innerHTML = html;
+
+  requestAnimationFrame(() => {
+    const diagram = document.getElementById("nb-inspect-diagram");
+    if (!diagram) return;
+    const padW = 80, padH = 100;
+    const scaleX = (overlay.offsetWidth  - padW) / size;
+    const scaleY = (overlay.offsetHeight - padH) / size;
+    const scale  = Math.min(1, scaleX, scaleY);
+    diagram.style.transform = `scale(${scale.toFixed(3)})`;
+  });
+}
+
+function closeInspectView() {
+  document.getElementById("nb-inspect-overlay").style.display = "none";
+  inspectMode = false;
+  document.getElementById("btn-inspect-mode").classList.remove("active");
+  document.getElementById("navis-map").style.cursor = "";
+  map.invalidateSize();
+}
+
+// ── Sidebar resize ─────────────────────────────────────────────────────────────
+(function() {
+  const sidebar = document.getElementById("nb-sidebar");
+  const handle  = document.getElementById("nb-resize-handle");
+  const STORAGE_KEY = "navis-sidebar-width";
+  const MIN = 200, MAX = 700;
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) sidebar.style.width = saved + "px";
+
+  function updateGrid() {
+    const w = sidebar.offsetWidth;
+    const cols = Math.max(1, Math.floor(w / 240));
+    const minCol = cols === 1 ? "100%" : "200px";
+    const tpl = `repeat(auto-fit, minmax(${minCol}, 1fr))`;
+    document.getElementById("nb-gw-grid").style.gridTemplateColumns    = tpl;
+    document.getElementById("nb-nodes-grid").style.gridTemplateColumns = tpl;
+    map.invalidateSize();
+  }
+  updateGrid();
+
+  let startX, startW;
+  handle.addEventListener("mousedown", e => {
+    startX = e.clientX;
+    startW = sidebar.offsetWidth;
+    handle.classList.add("dragging");
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    function onMove(e) {
+      const delta = startX - e.clientX;
+      const newW  = Math.min(MAX, Math.max(MIN, startW + delta));
+      sidebar.style.width = newW + "px";
+      updateGrid();
+    }
+    function onUp() {
+      handle.classList.remove("dragging");
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      localStorage.setItem(STORAGE_KEY, sidebar.offsetWidth);
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    }
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  });
+})();
+</script>
+{% endblock %}

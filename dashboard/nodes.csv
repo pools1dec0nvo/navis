@@ -1,0 +1,332 @@
+parish,name,node_id,tank_prefix,latitude,longitude,tank_count
+Alcântara,Hosp. CUF Tejo,ALC-1,1,38.7069,-9.1836,4
+Alcântara,ISA (1),ALC-2,2,38.71325,-9.1842,5
+Alcântara,ISA (2),ALC-22,22,38.71247,-9.1842,5
+Alcântara,Jd. Alto Santo Amaro,ALC-3,3,38.7036,-9.18,2
+Alcântara,Portuguese Navy and port-related installations along the Tagus,ALC-4,4,38.706,-9.18,3
+Alcântara,Tapada Ajuda (1),ALC-5,5,38.71295,-9.1856,8
+Alcântara,Tapada Ajuda (2),ALC-52,52,38.71296173901912,-9.185367524448496,8
+Alcântara,Tapada Ajuda (3),ALC-53,53,38.71281186165663,-9.18513608768237,7
+Alcântara,Tapada Ajuda (4),ALC-54,54,38.712550189806606,-9.185253562495342,7
+Alcântara,Tapada Ajuda (5),ALC-55,55,38.7123184098844,-9.185275027683028,7
+Alvalade,Metro Alvalade,ALV-1,1,38.7532,-9.1448,4
+Alvalade,Esc. Secundária Rainha Dona Leonor,ALV-3,3,38.748,-9.1468,10
+Alvalade,FDUL (1),ALV-4,4,38.75445,-9.1576,7
+Alvalade,FDUL (2),ALV-42,42,38.753885,-9.157227609076372,7
+Alvalade,FDUL (3),ALV-43,43,38.753845,-9.15804167295593,7
+Alvalade,FLUL (1),ALV-5,5,38.75365,-9.1575,7
+Alvalade,FLUL (2),ALV-52,52,38.7533,-9.15707,7
+Alvalade,FLUL (3),ALV-53,53,38.752790000000005,-9.1575,7
+Alvalade,ISCTE-IUL (1),ALV-6,6,38.74845,-9.1533,8
+Alvalade,ISCTE-IUL (2),ALV-62,62,38.747885,-9.152927609076372,8
+Alvalade,ISCTE-IUL (3),ALV-63,63,38.747845,-9.15374167295593,8
+Alvalade,Jd. Campo Grande (1),ALV-7,7,38.75235,-9.148,8
+Alvalade,Jd. Campo Grande (2),ALV-72,72,38.7522681006148,-9.147663812462538,8
+Alvalade,Jd. Campo Grande (3),ALV-73,73,38.75188651432369,-9.147502786764788,8
+Alvalade,Jd. Campo Grande (4),ALV-74,74,38.75168466089624,-9.147848140691307,8
+Alvalade,Jd. Campo Grande (5),ALV-75,75,38.7516125833868,-9.14818657000782,8
+Alvalade,Jd. Museu Lisboa,ALV-8,8,38.7428,-9.1449,7
+Alvalade,Pq. José Gomes Ferreira (Mata Alvalade) (1),ALV-9,9,38.75675,-9.1507,8
+Alvalade,Pq. José Gomes Ferreira (Mata Alvalade) (2),ALV-92,92,38.756615,-9.150327609076372,8
+Alvalade,Pq. José Gomes Ferreira (Mata Alvalade) (3),ALV-93,93,38.756145,-9.150258327044073,8
+Alvalade,Pq. José Gomes Ferreira (Mata Alvalade) (4),ALV-94,94,38.75605,-9.1507,8
+Alvalade,Pq. Quinta Alfarrobeira,ALV-10,10,38.7692,-9.1365,11
+Alvalade,Metro Roma,ALV-11,11,38.7486,-9.1416,5
+Areeiro,Metro Alameda,ARE-1,1,38.7368,-9.1336,7
+Areeiro,Metro Areeiro,ARE-2,2,38.7422,-9.1336,7
+Areeiro,Ctr. Saúde Areeiro,ARE-3,3,38.7395,-9.132,7
+Areeiro,Esc. Secundária Filipa Lencastre,ARE-4,4,38.7396,-9.1361,12
+Areeiro,IST (1),ARE-5,5,38.73705,-9.1389,7
+Areeiro,IST (2),ARE-52,52,38.7369681006148,-9.138563812462538,7
+Areeiro,IST (3),ARE-53,53,38.73658651432368,-9.138402786764788,7
+Areeiro,IST (4),ARE-54,54,38.73638466089624,-9.138748140691307,7
+Areeiro,Jd. Fernando Pessa,ARE-6,6,38.7399,-9.1276,8
+Areeiro,Jd. Olaias,ARE-7,7,38.7429,-9.1223,12
+Areeiro,Jd. Arco Cego,ARE-8,8,38.7352,-9.1382,7
+Areeiro,Metro Olaias,ARE-9,9,38.7397,-9.1239,6
+Areeiro,Pq. Urbano Casal Vistoso (1),ARE-10,10,38.73995,-9.124,7
+Areeiro,Pq. Urbano Casal Vistoso (2),ARE-102,102,38.739385000000006,-9.123627609076372,6
+Areeiro,Pq. Urbano Casal Vistoso (3),ARE-103,103,38.739345,-9.12444167295593,6
+Areeiro,Portuguese Army engineering services nearby,ARE-11,11,38.741,-9.134,9
+Arroios,Metro Anjos,ARR-1,1,38.724,-9.1348,7
+Arroios,Army administrative buildings near Campo Santana,ARR-2,2,38.7196,-9.1388,12
+Arroios,Metro Arroios,ARR-3,3,38.7288,-9.1347,7
+Arroios,Campo Mártires Pátria (Jardim Campo Santana) (1),ARR-4,4,38.72025,-9.1387,7
+Arroios,Campo Mártires Pátria (Jardim Campo Santana) (2),ARR-42,42,38.7199,-9.13827,7
+Arroios,Campo Mártires Pátria (Jardim Campo Santana) (3),ARR-43,43,38.71939,-9.1387,7
+Arroios,Campo Mártires Pátria (Jardim Campo Santana) (4),ARR-44,44,38.7199,-9.13905,7
+Arroios,Esc. Secundária Camões,ARR-5,5,38.7242,-9.138,12
+Arroios,Hosp. Dona Estefânia (1),ARR-6,6,38.72635,-9.1342,7
+Arroios,Hosp. Dona Estefânia (2),ARR-62,62,38.726,-9.13377,7
+Arroios,Hosp. Dona Estefânia (3),ARR-63,63,38.72549,-9.1342,7
+Arroios,Hosp. Dona Estefânia (4),ARR-64,64,38.726,-9.13455,7
+Arroios,Hosp. São José (1),ARR-7,7,38.71725,-9.1381,8
+Arroios,Hosp. São José (2),ARR-72,72,38.7169,-9.13767,8
+Arroios,Hosp. São José (3),ARR-73,73,38.71639,-9.1381,8
+Arroios,Hosp. São José (4),ARR-74,74,38.7169,-9.13845,7
+Arroios,IST (1),ARR-8,8,38.73705,-9.1389,8
+Arroios,IST (2),ARR-82,82,38.73702939911054,-9.138623601327836,8
+Arroios,IST (3),ARR-83,83,38.73678856057061,-9.138397748045964,8
+Arroios,IST (4),ARR-84,84,38.736525,-9.138596891108676,8
+Arroios,IST (5),ARR-85,85,38.73629593217306,-9.13875293133837,8
+Arroios,IST (6),ARR-86,86,38.7362207567634,-9.139074430273096,8
+Arroios,IST (7),ARR-87,87,38.736525,-9.139203108891325,8
+Arroios,IST (8),ARR-88,88,38.73677466871639,-9.139323467333794,8
+Arroios,IST (9),ARR-89,89,38.73709068266599,-9.13922782168094,8
+Arroios,Metro Intendente,ARR-9,9,38.7193,-9.1341,7
+Arroios,Jd. Praça José Fontana,ARR-10,10,38.7259,-9.1401,10
+Arroios,Jd. Travessa Mónicas,ARR-11,11,38.7192,-9.1295,5
+Avenidas Novas,Armed Forces Institute facilities nearby,AVN-1,1,38.7355,-9.151,8
+Avenidas Novas,Metro Campo Pequeno,AVN-2,2,38.7412,-9.146,6
+Avenidas Novas,Metro Entre Campos,AVN-3,3,38.7462,-9.1487,6
+Avenidas Novas,Hosp. Curry Cabral (1),AVN-4,4,38.73995,-9.1487,7
+Avenidas Novas,Hosp. Curry Cabral (2),AVN-42,42,38.739385000000006,-9.148327609076372,7
+Avenidas Novas,Hosp. Curry Cabral (3),AVN-43,43,38.739345,-9.14914167295593,7
+Avenidas Novas,Hosp. Santa Marta (1),AVN-5,5,38.72325,-9.1416,6
+Avenidas Novas,Hosp. Santa Marta (2),AVN-52,52,38.722685000000006,-9.141227609076372,6
+Avenidas Novas,Jd. Amália Rodrigues,AVN-6,6,38.7296,-9.156,11
+Avenidas Novas,Jd. Fundação Calouste Gulbenkian (1),AVN-7,7,38.73755,-9.1544,7
+Avenidas Novas,Jd. Fundação Calouste Gulbenkian (2),AVN-72,72,38.7374681006148,-9.15406381246254,7
+Avenidas Novas,Jd. Fundação Calouste Gulbenkian (3),AVN-73,73,38.737086514323686,-9.153902786764789,7
+Avenidas Novas,Jd. Fundação Calouste Gulbenkian (4),AVN-74,74,38.73688466089624,-9.15424814069131,7
+Avenidas Novas,Metro Praça Espanha,AVN-8,8,38.7374,-9.1598,7
+Avenidas Novas,Metro Saldanha,AVN-9,9,38.7354,-9.1452,6
+Avenidas Novas,Metro São Sebastião,AVN-10,10,38.7345,-9.1533,7
+Avenidas Novas,UNL,AVN-11,11,38.7361,-9.1548,10
+Belém,Ctr. Cultural Marinha,BEL-1,1,38.6988,-9.2057,7
+Belém,Esc. Secundária Restelo,BEL-2,2,38.7032,-9.212,12
+Belém,Hosp. São Francisco Xavier (1),BEL-3,3,38.69815,-9.2244,7
+Belém,Hosp. São Francisco Xavier (2),BEL-32,32,38.697585,-9.224027609076373,7
+Belém,Hosp. São Francisco Xavier (3),BEL-33,33,38.697545,-9.224841672955929,7
+Belém,Jd. Afonso Albuquerque,BEL-4,4,38.6962,-9.2072,8
+Belém,Jd. Vasco Gama,BEL-5,5,38.6972,-9.205,11
+Belém,Jd. Praça Império (1),BEL-6,6,38.69825,-9.2066,6
+Belém,Jd. Praça Império (2),BEL-62,62,38.697685,-9.206227609076372,6
+Belém,Jd. Praça Império (3),BEL-63,63,38.697645,-9.20704167295593,6
+Belém,Jd. Torre Belém,BEL-7,7,38.6916,-9.216,8
+Belém,ULL (1),BEL-9,9,38.70015,-9.2096,7
+Benfica,Metro Alto Moinhos,BEN-1,1,38.7507,-9.1811,1
+Benfica,Colégio Militar,BEN-2,2,38.7488,-9.1913,2
+Benfica,Metro Colégio Militar / Luz,BEN-3,3,38.7529,-9.1904,1
+Benfica,Esc. Básica Pedro Santarém,BEN-4,4,38.7508,-9.18,1
+Benfica,Esc. Secundária José Gomes Ferreira,BEN-5,5,38.7479,-9.1764,1
+Benfica,Hosp. Lusíadas Lisboa,BEN-6,6,38.7317,-9.1746,2
+Benfica,Hosp. Luz Lisboa,BEN-7,7,38.7517,-9.1849,2
+Benfica,Jd. Alfredo Keil Amaral,BEN-8,8,38.7332,-9.1885,4
+Benfica,Jd. Quinta Flores,BEN-9,9,38.7589,-9.169,1
+Benfica,Pq. Florestal Monsanto (1),BEN-10,10,38.72435,-9.194,8
+Benfica,Pq. Florestal Monsanto (2),BEN-102,102,38.72442119787473,-9.193913441636363,8
+Benfica,Pq. Florestal Monsanto (3),BEN-103,103,38.72446866848392,-9.193798878513894,8
+Benfica,Pq. Florestal Monsanto (4),BEN-104,104,38.72428726720442,-9.193800056124717,8
+Benfica,Pq. Florestal Monsanto (5),BEN-105,105,38.7242962557752,-9.193688339101492,8
+Benfica,Pq. Florestal Monsanto (6),BEN-106,106,38.72426977164526,-9.19356719142868,8
+Benfica,Pq. Florestal Monsanto (7),BEN-107,107,38.72412155683849,-9.193671786753749,8
+Benfica,Pq. Florestal Monsanto (8),BEN-108,108,38.72406511394432,-9.19357495862054,8
+Benfica,Pq. Florestal Monsanto (12),BEN-1012,1012,38.7236878259489,-9.193596704374162,8
+Benfica,Pq. Florestal Monsanto (13),BEN-1013,1013,38.723734434657054,-9.193772019631048,8
+Benfica,Pq. Urbano Quinta Granja,BEN-11,11,38.7548,-9.1814,2
+Benfica,Metro Reboleira,BEN-12,12,38.7522,-9.2249,1
+Campo de Ourique,Esc. Secundária Ferreira Borges (1),CDO-1,1,38.71315,-9.1712,8
+Campo de Ourique,Esc. Secundária Ferreira Borges (2),CDO-12,12,38.713015,-9.170827609076373,8
+Campo de Ourique,Esc. Secundária Ferreira Borges (3),CDO-13,13,38.712545,-9.170758327044071,8
+Campo de Ourique,Esc. Secundária Ferreira Borges (4),CDO-14,14,38.71245,-9.1712,8
+Campo de Ourique,Esc. Secundária Ferreira Borges (5),CDO-15,15,38.712585,-9.171572390923629,8
+Campo de Ourique,Esc. Secundária Ferreira Borges (6),CDO-16,16,38.713055,-9.17164167295593,8
+Campo de Ourique,Jd. Parada (1),CDO-2,2,38.71335,-9.1706,8
+Campo de Ourique,Jd. Parada (2),CDO-22,22,38.713,-9.17017,8
+Campo de Ourique,Jd. Parada (3),CDO-23,23,38.71249,-9.1706,8
+Campo de Ourique,Jd. Parada (4),CDO-24,24,38.713,-9.17095,8
+Campo de Ourique,Salesianos Lisboa (1),CDO-3,3,38.71215,-9.1695,8
+Campo de Ourique,Salesianos Lisboa (2),CDO-32,32,38.71210405591591,-9.16919594408409,8
+Campolide,Esc. Secundária Maria Amália Vaz Carvalho,CAM-2,2,38.7287,-9.1629,12
+Campolide,Pq. Recreativo Alto Serafina (1),CAM-3,3,38.72625,-9.1994,8
+Campolide,Pq. Recreativo Alto Serafina (2),CAM-32,32,38.726115,-9.199027609076373,8
+Campolide,Pq. Recreativo Alto Serafina (6),CAM-36,36,38.726155000000006,-9.19984167295593,8
+Campolide,UNL (1),CAM-4,4,38.73315,-9.1629,9
+Campolide,UNL (2),CAM-42,42,38.7328,-9.16247,9
+Campolide,UNL (3),CAM-43,43,38.73229,-9.1629,9
+Campolide,UNL (4),CAM-44,44,38.7328,-9.16325,9
+Estrela,Esc. Secundária Pedro Nunes,EST-1,1,38.7146,-9.1624,12
+Estrela,Hosp. Egas Moniz (1),EST-2,2,38.70525,-9.2005,8
+Estrela,Hosp. Egas Moniz (2),EST-22,22,38.704685000000005,-9.200127609076372,8
+Estrela,Hosp. Egas Moniz (3),EST-23,23,38.704645,-9.20094167295593,8
+Estrela,Jd. Nuno Álvares,EST-3,3,38.7103,-9.1661,6
+Estrela,Jd. Cerca Necessidades (1),EST-4,4,38.70795,-9.1729,7
+Estrela,Jd. Cerca Necessidades (2),EST-42,42,38.70790405591591,-9.17259594408409,7
+Estrela,Jd. Cerca Necessidades (3),EST-43,43,38.7076,-9.17239,7
+Estrela,Jd. Estrela (1),EST-5,5,38.71435,-9.1603,7
+Estrela,Jd. Estrela (2),EST-52,52,38.714,-9.15987,7
+Estrela,Jd. Estrela (3),EST-53,53,38.71349,-9.1603,6
+Estrela,Jd. Estrela (4),EST-54,54,38.714,-9.16065,6
+Estrela,Palácio Necessidades (1),EST-6,6,38.70745,-9.1717,6
+Estrela,Palácio Necessidades (2),EST-62,62,38.706885,-9.171327609076371,6
+Estrela,Palácio Necessidades (3),EST-63,63,38.706845,-9.172141672955927,6
+Lumiar,Metro Campo Grande,LUM-1,1,38.7602,-9.1575,3
+Lumiar,Campus Saúde Militar (1),LUM-2,2,38.75125,-9.158,7
+Lumiar,Campus Saúde Militar (2),LUM-22,22,38.75047,-9.158,7
+Lumiar,Ctr. Saúde Lumiar,LUM-3,3,38.7655,-9.1582,3
+Lumiar,Metro Cid. Universitária,LUM-4,4,38.7499,-9.157,3
+Lumiar,Esc. Secundária Lumiar,LUM-5,5,38.769,-9.159,5
+Lumiar,FCUL (1),LUM-6,6,38.75675,-9.1569,6
+Lumiar,FCUL (2),LUM-62,62,38.756185,-9.156527609076372,5
+Lumiar,FCUL (3),LUM-63,63,38.756145,-9.15734167295593,5
+Lumiar,FMUL (1),LUM-7,7,38.74925,-9.1592,6
+Lumiar,FMUL (2),LUM-72,72,38.74847,-9.1592,6
+Lumiar,Hosp. Pulido Valente (1),LUM-8,8,38.76095,-9.1601,6
+Lumiar,Hosp. Pulido Valente (2),LUM-82,82,38.76017,-9.1601,6
+Lumiar,Hosp. Força Aérea (1),LUM-9,9,38.75235,-9.1575,5
+Lumiar,Hosp. Força Aérea (2),LUM-92,92,38.75157,-9.1575,5
+Lumiar,Hosp. Santa Maria (1),LUM-10,10,38.74875,-9.1593,7
+Lumiar,Hosp. Santa Maria (2),LUM-102,102,38.74797,-9.1593,7
+Lumiar,Jd. Bordalo II,LUM-11,11,38.7589,-9.1515,3
+Lumiar,Jd. Quinta Santa Clara,LUM-12,12,38.7823,-9.157,7
+Lumiar,Jd. Quinta Barros (1),LUM-13,13,38.75735,-9.156,5
+Lumiar,Jd. Quinta Barros (2),LUM-132,132,38.75657,-9.156,5
+Lumiar,Metro Lumiar,LUM-14,14,38.7722,-9.1587,3
+Lumiar,Lumiar Health Center,LUM-15,15,38.7655,-9.1582,3
+Lumiar,Pq. Quinta Conchas (1),LUM-16,16,38.78135,-9.1549,7
+Lumiar,Pq. Quinta Conchas (2),LUM-162,162,38.78130405591591,-9.15459594408409,7
+Lumiar,Pq. Quinta Conchas (3),LUM-163,163,38.781,-9.15439,7
+Lumiar,Pq. Quinta Conchas (4),LUM-164,164,38.78075251262658,-9.154652512626583,7
+Lumiar,Pq. Quinta Conchas (5),LUM-165,165,38.78057,-9.1549,7
+Lumiar,Pq. Quinta Conchas (6),LUM-166,166,38.7806393755416,-9.155260624458403,7
+Lumiar,Pq. Quinta Conchas (7),LUM-167,167,38.781,-9.15525,7
+Lumiar,Pq. Quinta Conchas (8),LUM-168,168,38.78130405591591,-9.15520405591591,7
+Lumiar,Pq. Conchas (1),LUM-17,17,38.78055,-9.1546,7
+Lumiar,Pq. Conchas (2),LUM-172,172,38.78050405591591,-9.15429594408409,7
+Lumiar,Pq. Conchas (3),LUM-173,173,38.7802,-9.15409,7
+Lumiar,Pq. Conchas (4),LUM-174,174,38.779952512626586,-9.154352512626584,7
+Lumiar,Pq. Conchas (5),LUM-175,175,38.77977,-9.1546,7
+Lumiar,Pq. Conchas (6),LUM-176,176,38.7798393755416,-9.154960624458406,7
+Lumiar,Pq. Conchas (7),LUM-177,177,38.7802,-9.15495,7
+Lumiar,Pq. Conchas (8),LUM-178,178,38.78050405591591,-9.15490405591591,7
+Lumiar,Metro Quinta Conchas,LUM-18,18,38.7792,-9.1582,3
+Lumiar,Metro Telheiras,LUM-19,19,38.7607,-9.166,3
+Marvila,Metro Bela Vista,MAR-1,1,38.7528,-9.1076,3
+Marvila,Ctr. Saúde Marvila,MAR-2,2,38.7439,-9.1064,2
+Marvila,Metro Chelas,MAR-3,3,38.7544,-9.113,2
+Marvila,Esc. Secundária D. Dinis,MAR-4,4,38.743,-9.1062,4
+Marvila,ISEL (1),MAR-5,5,38.75605,-9.116,5
+Marvila,ISEL (2),MAR-52,52,38.75527,-9.116,5
+Marvila,Pq. Ribeirinho Oriente (1),MAR-6,6,38.75275,-9.097,5
+Marvila,Pq. Ribeirinho Oriente (2),MAR-62,62,38.75197,-9.097,5
+Marvila,Pq. Urbano Vale Montanha (1),MAR-7,7,38.73975,-9.109,8
+Marvila,Pq. Urbano Vale Montanha (2),MAR-72,72,38.73897,-9.109,8
+Marvila,Pq. Bela Vista (1),MAR-8,8,38.74605,-9.1179,8
+Marvila,Pq. Bela Vista (2),MAR-82,82,38.74611089630649,-9.117773255275004,8
+Marvila,Pq. Bela Vista (3),MAR-83,83,38.7461213817749,-9.117612706770387,8
+Marvila,Pq. Bela Vista (4),MAR-84,84,38.74591822143065,-9.117626358981136,8
+Marvila,Pq. Bela Vista (5),MAR-85,85,38.74585709664048,-9.117499724288084,8
+Marvila,Pq. Bela Vista (6),MAR-86,86,38.74573811234773,-9.117391426063438,8
+Marvila,Pq. Bela Vista (7),MAR-87,87,38.74562211767312,-9.117558775230735,8
+Marvila,Pq. Bela Vista (8),MAR-88,88,38.745485,-9.117527609076372,8
+Marvila,Pq. Bela Vista (9),MAR-89,89,38.74532614354536,-9.117553111903735,8
+Marvila,Pq. Bela Vista (10),MAR-810,810,38.74538466089624,-9.11774814069131,8
+Marvila,Pq. Bela Vista (11),MAR-811,811,38.74527480274472,-9.117835911825544,8
+Marvila,Pq. Bela Vista (12),MAR-812,812,38.74519569627862,-9.11797601155575,8
+Marvila,Pq. Bela Vista (13),MAR-813,813,38.74538466089624,-9.118051859308691,8
+Marvila,Pq. Bela Vista (14),MAR-814,814,38.74538478769512,-9.118192474277242,8
+Marvila,Pq. Bela Vista (15),MAR-815,815,38.745445,-9.11834167295593,8
+Marvila,Pq. Bela Vista (16),MAR-816,816,38.74562211767312,-9.118241224769264,8
+Marvila,Pq. Bela Vista (17),MAR-817,817,38.74573213394024,-9.118328797632788,8
+Marvila,Pq. Bela Vista (18),MAR-818,818,38.74588632392243,-9.11837474561181,8
+Marvila,Pq. Bela Vista (19),MAR-819,819,38.74591822143065,-9.118173641018863,8
+Marvila,Pq. Bela Vista (20),MAR-820,820,38.74605528267296,-9.118142227624968,8
+Marvila,Pq. Bela Vista (21),MAR-821,821,38.74618734213095,-9.11805032513895,8
+Marvila,Pq. Vale Chelas (1),MAR-9,9,38.74155,-9.1088,7
+Marvila,Pq. Vale Chelas (2),MAR-92,92,38.7412,-9.10837,7
+Marvila,Pq. Vale Chelas (3),MAR-93,93,38.74069,-9.1088,7
+Marvila,Pq. Vale Chelas (4),MAR-94,94,38.7412,-9.10915,7
+Marvila,Portuguese Army logistics facilities (Chelas military zone),MAR-10,10,38.7488,-9.112,7
+Misericórdia,Metro Baixa-Chiado,MIS-1,1,38.7106,-9.1403,8
+Misericórdia,Metro Cais Sodré,MIS-2,2,38.7055,-9.1447,8
+Misericórdia,IADE,MIS-3,3,38.7085,-9.151,12
+Misericórdia,IADE-UE,MIS-4,4,38.7085,-9.151,12
+Misericórdia,Jd. Botânico Lisboa (1),MIS-5,5,38.71825,-9.148,6
+Misericórdia,Jd. Botânico Lisboa (2),MIS-52,52,38.7179,-9.14757,6
+Misericórdia,Jd. Botânico Lisboa (3),MIS-53,53,38.71739,-9.148,6
+Misericórdia,Jd. Botânico Lisboa (4),MIS-54,54,38.7179,-9.14835,6
+Misericórdia,Jd. Teófilo Braga,MIS-6,6,38.7169,-9.1481,4
+Misericórdia,Jd. São Pedro Alcântara,MIS-7,7,38.7159,-9.1446,4
+Misericórdia,Jd. Alto Santa Catarina,MIS-8,8,38.7089,-9.1466,4
+Misericórdia,Jd. Príncipe Real,MIS-9,9,38.7164,-9.1485,8
+Misericórdia,historic naval administrative buildings,MIS-10,10,38.7092,-9.145,9
+Olivais,CUF Descobertas Hospital (1),OLI-1,1,38.76855,-9.0999,8
+Olivais,CUF Descobertas Hospital (2),OLI-12,12,38.767985,-9.099527609076372,8
+Olivais,CUF Descobertas Hospital (3),OLI-13,13,38.767945,-9.10034167295593,8
+Olivais,Metro Cabo Ruivo,OLI-2,2,38.7631,-9.1045,7
+Olivais,Ctr. Saúde Olivais,OLI-3,3,38.771,-9.1146,9
+Olivais,Esc. Básica Olivais,OLI-4,4,38.77,-9.1125,11
+Olivais,Esc. Secundária António Damásio,OLI-5,5,38.7684,-9.1133,12
+Olivais,Hosp. CUF Descobertas (1),OLI-6,6,38.76855,-9.0999,8
+Olivais,Hosp. CUF Descobertas (2),OLI-62,62,38.767985,-9.099527609076372,8
+Olivais,Hosp. CUF Descobertas (3),OLI-63,63,38.767945,-9.10034167295593,8
+Olivais,Jd. Vale Fundão,OLI-7,7,38.7709,-9.1103,12
+Olivais,Metro Olivais,OLI-8,8,38.7692,-9.1061,7
+Olivais,Pq. Vale Silêncio (1),OLI-9,9,38.77095,-9.1139,8
+Olivais,Pq. Vale Silêncio (2),OLI-92,92,38.77097239092363,-9.113684999999998,8
+Olivais,Pq. Vale Silêncio (3),OLI-93,93,38.770855000000005,-9.11345832704407,8
+Olivais,Pq. Vale Silêncio (4),OLI-94,94,38.7706,-9.11355,8
+Olivais,Pq. Vale Silêncio (5),OLI-95,95,38.770385000000005,-9.113527609076373,8
+Olivais,Portuguese Air Force logistic units near Lisbon Airport (1),OLI-10,10,38.77085,-9.128,7
+Olivais,Portuguese Air Force logistic units near Lisbon Airport (2),OLI-102,102,38.7705,-9.12757,7
+Olivais,Portuguese Air Force logistic units near Lisbon Airport (3),OLI-103,103,38.76999,-9.128,7
+Olivais,Portuguese Air Force logistic units near Lisbon Airport (4),OLI-104,104,38.7705,-9.12835,7
+Parque das Nações,Metro Oriente (1),PDN-1,1,38.76765,-9.0992,8
+Parque das Nações,Metro Oriente (2),PDN-12,12,38.76770670141393,-9.09906037922824,8
+Parque das Nações,Metro Oriente (3),PDN-13,13,38.76770246165979,-9.098886751516527,8
+Parque das Nações,Metro Oriente (4),PDN-14,14,38.76749143185534,-9.098906991732608,8
+Penha de França,Esc. Básica Patrício Prazeres,PDF-1,1,38.7308,-9.1245,12
+Penha de França,Esc. Secundária Penha França,PDF-2,2,38.7302,-9.1262,12
+Penha de França,Hosp. Dona Estefânia (border area) (1),PDF-3,3,38.72635,-9.1342,12
+Penha de França,Hosp. Dona Estefânia (border area) (2),PDF-32,32,38.72630405591591,-9.13389594408409,12
+Penha de França,Hosp. Dona Estefânia (border area) (3),PDF-33,33,38.726,-9.13369,12
+Penha de França,Hosp. Dona Estefânia (border area) (4),PDF-34,34,38.725752512626585,-9.133952512626584,11
+Penha de França,Hosp. Dona Estefânia (border area) (5),PDF-35,35,38.72557,-9.1342,11
+Penha de França,Hosp. Dona Estefânia (border area) (6),PDF-36,36,38.7256393755416,-9.134560624458404,11
+Penha de França,Hosp. Dona Estefânia (border area) (7),PDF-37,37,38.726,-9.13455,11
+Penha de França,Hosp. Dona Estefânia (border area) (8),PDF-38,38,38.72630405591591,-9.13450405591591,11
+Penha de França,Jd. Alameda Dom Afonso Henriques (1),PDF-4,4,38.73715,-9.1327,12
+Penha de França,Jd. Alameda Dom Afonso Henriques (2),PDF-42,42,38.737015,-9.132327609076372,12
+Penha de França,Jd. Alameda Dom Afonso Henriques (3),PDF-43,43,38.736545,-9.13225832704407,12
+Penha de França,Jd. Alameda Dom Afonso Henriques (4),PDF-44,44,38.736450000000005,-9.1327,12
+Penha de França,Jd. Alameda Dom Afonso Henriques (5),PDF-45,45,38.736585000000005,-9.133072390923628,12
+Penha de França,Jd. Alameda Dom Afonso Henriques (6),PDF-46,46,38.737055000000005,-9.13314167295593,12
+Penha de França,Portuguese Army historical barracks (Sapadores area),PDF-5,5,38.725,-9.126,12
+Santa Maria Maior,Metro Martim Moniz (1),SMM-1,1,38.71695,-9.1362,9
+Santa Maria Maior,Metro Martim Moniz (2),SMM-12,12,38.716385,-9.135827609076372,9
+Santa Maria Maior,Metro Martim Moniz (3),SMM-13,13,38.716345,-9.13664167295593,8
+Santa Maria Maior,Metro Restauradores (1),SMM-2,2,38.71655,-9.1426,8
+Santa Maria Maior,Metro Restauradores (2),SMM-22,22,38.715985,-9.142227609076372,8
+Santa Maria Maior,Metro Restauradores (3),SMM-23,23,38.715945,-9.14304167295593,8
+Santa Maria Maior,Metro Rossio,SMM-3,3,38.7142,-9.1402,12
+Santa Maria Maior,Metro Terreiro Paço (1),SMM-4,4,38.70825,-9.1366,7
+Santa Maria Maior,Metro Terreiro Paço (4),SMM-44,44,38.7079,-9.13695,7
+Santo António,Metro Avenida,SAN-1,1,38.7206,-9.1452,2
+Santo António,Hosp. Capuchos,SAN-2,2,38.7192,-9.1411,5
+Santo António,Jd. Amoreiras,SAN-3,3,38.721,-9.1588,2
+Santo António,Jd. Torel,SAN-4,4,38.7219,-9.1417,3
+Santo António,Liceu Passos Manuel,SAN-5,5,38.7176,-9.1369,5
+Santo António,Metro Marquês Pombal,SAN-6,6,38.7268,-9.1502,3
+Santo António,Metro Parque,SAN-7,7,38.7283,-9.1503,2
+Santo António,Pq. Eduardo VII (1),SAN-8,8,38.728683,-9.152778,7
+Santo António,Pq. Eduardo VII (2),SAN-82,82,38.72863705591591,-9.15247394408409,7
+Santo António,Pq. Eduardo VII (3),SAN-83,83,38.728333,-9.152268,7
+Santo António,Pq. Eduardo VII (4),SAN-84,84,38.728085512626585,-9.152530512626583,7
+Santo António,Pq. Eduardo VII (8),SAN-88,88,38.72863705591591,-9.15308205591591,6
+Santo António,Metro Picoas,SAN-9,9,38.7304,-9.146,2
+São Domingos de Benfica,Metro Jardim Zoológico (1),SDB-1,1,38.74165,-9.1684,8
+São Domingos de Benfica,Metro Jardim Zoológico (2),SDB-12,12,38.74169726819898,-9.168235446124084,8
+São Domingos de Benfica,Metro Jardim Zoológico (3),SDB-13,13,38.741660624458405,-9.168039375541596,8
+São Domingos de Benfica,Metro Jardim Zoológico (4),SDB-14,14,38.74143393920133,-9.16807664216362,8
+São Domingos de Benfica,Metro Jardim Zoológico (5),SDB-15,15,38.7413,-9.16797,8
+São Domingos de Benfica,Metro Laranjeiras (12),SDB-212,212,38.75771348567631,-9.166597213235212,7
+São Domingos de Benfica,Metro Laranjeiras (13),SDB-213,213,38.75781822143065,-9.166373641018865,7
+São Vicente,Esc. Secundária Gil Vicente,SVI-1,1,38.7178,-9.1279,12
+São Vicente,Hosp. São José (nearby) (1),SVI-2,2,38.71725,-9.1381,12
+São Vicente,Hosp. São José (nearby) (2),SVI-22,22,38.7169,-9.13767,11
+São Vicente,Hosp. São José (nearby) (3),SVI-23,23,38.71639,-9.1381,11
+São Vicente,Hosp. São José (nearby) (4),SVI-24,24,38.7169,-9.13845,11
+São Vicente,Jd. Augusto Gil,SVI-3,3,38.7167,-9.1292,12
+São Vicente,Jd. Cerca Graça,SVI-4,4,38.7183,-9.1318,12
+São Vicente,Metro Santa Apolónia,SVI-5,5,38.7146,-9.1225,12
