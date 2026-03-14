@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("navis", "0003_node_parish"),
+        ("dashboard", "0003_node_parish"),
     ]
 
     operations = [

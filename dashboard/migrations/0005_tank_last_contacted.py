@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("navis", "0004_remove_tank_location"),
+        ("dashboard", "0004_remove_tank_location"),
     ]
 
     operations = [

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("navis", "0002_entity_tank_issue_alter_node_status_and_more"),
+        ("dashboard", "0002_entity_tank_issue_alter_node_status_and_more"),
     ]
 
     operations = [

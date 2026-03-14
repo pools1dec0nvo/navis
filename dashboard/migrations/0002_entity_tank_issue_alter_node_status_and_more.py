@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("navis", "0001_initial"),
+        ("dashboard", "0001_initial"),
     ]
 
     operations = [
@@ -110,7 +110,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.PROTECT,
                         related_name="gateways",
-                        to="navis.entity",
+                        to="dashboard.entity",
                     ),
                 ),
             ],
